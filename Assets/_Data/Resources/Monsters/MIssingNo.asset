@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 266f06e420a1a3343b8a9672855cdda5, type: 3}
+  m_Name: MIssingNo
+  m_EditorClassIdentifier: 
+  name: MissingNo
+  description: 
+  frontSprite: {fileID: 7152930139536384079, guid: 3111f23cd57d2be48b2ee6bac4a23588, type: 3}
+  backSprite: {fileID: 7152930139536384079, guid: 3111f23cd57d2be48b2ee6bac4a23588, type: 3}
+  type1: 0
+  type2: 0
+  maxHp: 5
+  attack: 5
+  defense: 5
+  spAttack: 5
+  spDefense: 5
+  speed: 5
+  baseXp: 5
+  levelUpMultiplier: 5
+  catchRate: 5
+  learnableMoves:
+  - moveBase: {fileID: 11400000, guid: 9755b7af036ec054680c486edc463064, type: 2}
+    level: 1
