@@ -6,15 +6,21 @@ public class BattleUnit : MonoBehaviour
     [SerializeField] MonsterBase _base;
     [SerializeField] int level;
     [SerializeField] bool isPlayerUnit;
+    [SerializeField] private Image battleSprite;
 
     public Monster Monster { get; set; }
 
+    private void Awake()
+    {
+        battleSprite = GetComponent<Image>();
+    }
     public void Setup()
     {
-        new Monster(_base, level);
+        Monster = new Monster(_base, level);
+
         if (isPlayerUnit)
-            GetComponent<Image>().sprite = Monster.Base.BackSprite;
+            battleSprite.sprite = Monster.Base.BackSprite;
         else
-            GetComponent<Image>().sprite = Monster.Base.FrontSprite;
+            battleSprite.sprite = Monster.Base.FrontSprite;
     }
 }

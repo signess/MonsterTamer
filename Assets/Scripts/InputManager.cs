@@ -37,4 +37,19 @@ public class InputManager : MonoBehaviour
     {
         return playerControls.Player.Interaction.triggered;
     }
+
+    public Vector2 GetBattleMoveInput()
+    {
+        return playerControls.Battle.Move.ReadValue<Vector2>();
+    }
+
+    public bool GetBattleConfirmInput()
+    {
+        return playerControls.Battle.Confirm.triggered;
+    }
+
+    public bool GetBattleCancelInput()
+    {
+        return playerControls.Battle.Cancel.triggered;
+    }
 }
