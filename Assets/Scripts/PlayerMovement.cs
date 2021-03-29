@@ -1,9 +1,11 @@
+using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
+    public event Action OnEncountered;
+
     private InputManager inputManager;
     private Animator animator;
     [SerializeField] float moveSpeed;
@@ -17,17 +19,12 @@ public class PlayerMovement : MonoBehaviour
         animator = GetComponentInChildren<Animator>();
     }
 
-    private void Update()
-    {
-        GetInput();
-    }
-
     private void FixedUpdate()
     {
         MovePlayer(Time.fixedDeltaTime);
     }
 
-    private void GetInput()
+    public void GetInput()
     {
         input.x = inputManager.GetPlayerMovement().x;
         input.y = inputManager.GetPlayerMovement().y;
@@ -105,9 +102,10 @@ public class PlayerMovement : MonoBehaviour
     {
         if (Physics2D.OverlapCircle(transform.position, 0.2f, grassLayer) != null)
         {
-            if (Random.Range(1, 101) <= 10)
+            if (UnityEngine.Random.Range(1, 101) <= 10)
             {
-                Debug.Log("Encounter a wild monster");
+                input = Vector2.zero;
+                OnEncountered();
             }
         }
     }

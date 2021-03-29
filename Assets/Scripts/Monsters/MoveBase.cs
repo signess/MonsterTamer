@@ -12,6 +12,7 @@ public class MoveBase : ScriptableObject
     [SerializeField] int power;
     [SerializeField] int accuracy;
     [SerializeField] int pp;
+    [SerializeField] MoveType moveType;
 
     public string Name { get => name; }
     public string Description { get => description; }
@@ -19,4 +20,11 @@ public class MoveBase : ScriptableObject
     public int Power { get => power; }
     public int Accuracy { get => accuracy; }
     public int PP { get => pp; }
+    public MoveType MoveType { get => moveType; }
+}
+
+[System.Serializable]
+public enum MoveType
+{
+    PHYSICAL, SPECIAL, STATUS
 }

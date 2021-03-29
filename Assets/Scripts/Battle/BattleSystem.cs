@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -11,6 +12,8 @@ public enum BattleState
 
 public class BattleSystem : MonoBehaviour
 {
+    public event Action<bool> OnBattleOver;
+
     [Header("Player")]
     [SerializeField] BattleUnit playerUnit;
     [SerializeField] BattleHUD playerHUD;
@@ -37,14 +40,22 @@ public class BattleSystem : MonoBehaviour
     [SerializeField] private int currentAction = -1;
     [SerializeField] private int currentMove = -1;
 
+    MonsterParty playerParty;
+    Monster wildMonster;
 
     private void Start()
     {
         inputManager = InputManager.Instance;
+    }
+
+    public void StartBattle(MonsterParty monsterParty, Monster wildMonster)
+    {
+        this.playerParty = monsterParty;
+        this.wildMonster = wildMonster;
         StartCoroutine(SetupBattle());
     }
 
-    private void Update()
+    public void HandleUpdate()
     {
         if (state == BattleState.PlayerTurn)
         {
@@ -58,15 +69,14 @@ public class BattleSystem : MonoBehaviour
 
     public IEnumerator SetupBattle()
     {
-        playerUnit.Setup();
+        playerUnit.Setup(playerParty.GetHealthyMonster());
         playerHUD.SetData(playerUnit.Monster);
         SetMoveNamesAndDetails(playerUnit.Monster.Moves);
 
-        enemyUnit.Setup();
+        enemyUnit.Setup(wildMonster);
         enemyHUD.SetData(enemyUnit.Monster);
 
         yield return dialogBox.TypeDialog($"A wild {enemyUnit.Monster.Base.Name} appeared.");
-        yield return new WaitForSeconds(2f);
 
         PlayerTurn();
     }
@@ -123,7 +133,7 @@ public class BattleSystem : MonoBehaviour
 
         UpdateActionSelection(currentAction);
 
-        if (inputManager.GetBattleConfirmInput())
+        if (inputManager.GetBattleConfirmInput() && currentAction != -1)
         {
             if (currentAction == 0)
             {
@@ -183,6 +193,11 @@ public class BattleSystem : MonoBehaviour
 
         UpdateMoveSelection(currentMove);
 
+        if (inputManager.GetBattleConfirmInput() && currentMove != -1)
+        {
+            DisableSelectors();
+            StartCoroutine(PerformPlayerMove());
+        }
     }
 
     private bool EnableKeyNavigation()
@@ -211,6 +226,12 @@ public class BattleSystem : MonoBehaviour
     {
         moveSelector.SetActive(enabled);
         actionSelector.SetActive(!enabled);
+    }
+
+    public void DisableSelectors()
+    {
+        moveSelector.SetActive(false);
+        actionSelector.SetActive(false);
     }
 
     public void UpdateActionSelection(int selectedAction)
@@ -264,5 +285,87 @@ public class BattleSystem : MonoBehaviour
                 typeTexts[i].text = "";
             }
         }
+    }
+
+    private IEnumerator PerformPlayerMove()
+    {
+        state = BattleState.Busy;
+        var move = playerUnit.Monster.Moves[currentMove];
+        move.PP--;
+        yield return dialogBox.TypeDialog($"{playerUnit.Monster.Base.Name} used {move.Base.Name}");
+        yield return playerUnit.PlayAttackAnimation();
+        yield return new WaitForSeconds(.5f);
+        yield return enemyUnit.PlayHitAnimation();
+        var damageDetails = enemyUnit.Monster.TakeDamage(move, playerUnit.Monster);
+        yield return enemyHUD.UpdateHP();
+        yield return ShowDamageDetails(damageDetails);
+        if (damageDetails.Fainted)
+        {
+            yield return dialogBox.TypeDialog($"{enemyUnit.Monster.Base.Name} fainted!");
+            yield return enemyUnit.PlayFaintAnimation();
+
+            yield return new WaitForSeconds(1.5f);
+            OnBattleOver(true);
+        }
+        else
+        {
+            StartCoroutine(PerformEnemyMove());
+        }
+    }
+
+    private IEnumerator PerformEnemyMove()
+    {
+        state = BattleState.EnemyMove;
+        var move = enemyUnit.Monster.GetRandomMove();
+        move.PP--;
+        yield return dialogBox.TypeDialog($"{enemyUnit.Monster.Base.Name} used {move.Base.Name}");
+        yield return enemyUnit.PlayAttackAnimation();
+        yield return new WaitForSeconds(.5f);
+        yield return playerUnit.PlayHitAnimation();
+        var damageDetails = playerUnit.Monster.TakeDamage(move, enemyUnit.Monster);
+        yield return playerHUD.UpdateHP();
+        yield return ShowDamageDetails(damageDetails);
+        if (damageDetails.Fainted)
+        {
+            yield return dialogBox.TypeDialog($"{playerUnit.Monster.Base.Name} fainted!");
+            yield return playerUnit.PlayFaintAnimation();
+
+            yield return new WaitForSeconds(1.5f);
+
+            var nextMonster = playerParty.GetHealthyMonster();
+            if (nextMonster != null)
+            {
+                yield return SendNextMonster(nextMonster);
+                PlayerTurn();
+            }
+            else
+                OnBattleOver(false);
+        }
+        else
+        {
+            PlayerTurn();
+        }
+    }
+
+    private IEnumerator ShowDamageDetails(DamageDetails damageDetails)
+    {
+        if (damageDetails.Critical > 1f)
+            yield return dialogBox.TypeDialog("A critical hit!");
+
+        if (damageDetails.TypeEffectiveness > 1f)
+            yield return dialogBox.TypeDialog("It's super effective!");
+        else if (damageDetails.TypeEffectiveness < 1f)
+            yield return dialogBox.TypeDialog("It's not very effective!");
+    }
+
+    private IEnumerator SendNextMonster(Monster nextMonster)
+    {
+        playerUnit.Setup(nextMonster);
+        playerHUD.SetData(nextMonster);
+        SetMoveNamesAndDetails(nextMonster.Moves);
+        currentMove = -1;
+        currentAction = -1;
+
+        yield return dialogBox.TypeDialog($"Go {nextMonster.Base.Name}!");
     }
 }

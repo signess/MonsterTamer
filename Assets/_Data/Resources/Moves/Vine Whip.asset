@@ -18,3 +18,4 @@ MonoBehaviour:
   power: 45
   accuracy: 100
   pp: 20
+  moveType: 0
