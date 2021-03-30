@@ -2073,7 +2073,7 @@ MonoBehaviour:
   TransitionMaterial: {fileID: 2100000, guid: 7624d611bd330e44b80ef65275598a16, type: 2}
   transitionIsActive: 0
   fadeIn: 1
-  transitionRate: 0.01
+  transitionRate: 1
 --- !u!1 &578100643
 GameObject:
   m_ObjectHideFlags: 0
@@ -8104,8 +8104,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   monsters:
-  - _base: {fileID: 11400000, guid: 16f87e8b6763c034db9324d8bc65d3f2, type: 2}
-    level: 5
+  - _base: {fileID: 11400000, guid: c8cb5ba86ffb77b4a9de1e24356b8a80, type: 2}
+    level: 8
   - _base: {fileID: 11400000, guid: e1977d14ac8c77d41b4886d9dde3134c, type: 2}
     level: 8
 --- !u!4 &1654180806
@@ -19044,6 +19044,8 @@ MonoBehaviour:
     level: 2
   - _base: {fileID: 11400000, guid: e1977d14ac8c77d41b4886d9dde3134c, type: 2}
     level: 5
+  - _base: {fileID: 11400000, guid: 16f87e8b6763c034db9324d8bc65d3f2, type: 2}
+    level: 3
 --- !u!1 &2141863881
 GameObject:
   m_ObjectHideFlags: 0

@@ -32,15 +32,6 @@ public class GameController : MonoBehaviour
     private void StartBattle()
     {
         StartCoroutine(BattleTransition());
-
-        state = GameState.Battle;
-        battleSystem.gameObject.SetActive(true);
-        worldCamera.gameObject.SetActive(false);
-
-        var playerParty = playerMovement.GetComponent<MonsterParty>();
-        var wildMonster = FindObjectOfType<WildArea>().GetComponent<WildArea>().GetRandomWildMonster();
-
-        battleSystem.StartBattle(playerParty, wildMonster);
     }
 
     private void EndBattle(bool won)
@@ -52,7 +43,17 @@ public class GameController : MonoBehaviour
 
     private IEnumerator BattleTransition()
     {
-        worldCamera.GetComponent<SimpleBlit>().transitionIsActive = true;
-        yield return new WaitForSeconds(3f);
+        state = GameState.Battle;
+        worldCamera.GetComponent<SimpleBlit>().FadeIn();
+        yield return new WaitForSeconds(1.5f);
+
+        battleSystem.gameObject.SetActive(true);
+        worldCamera.gameObject.SetActive(false);
+
+        var playerParty = playerMovement.GetComponent<MonsterParty>();
+        var wildMonster = FindObjectOfType<WildArea>().GetComponent<WildArea>().GetRandomWildMonster();
+
+        battleSystem.StartBattle(playerParty, wildMonster);
+        worldCamera.GetComponent<SimpleBlit>().FadeOut();
     }
 }
