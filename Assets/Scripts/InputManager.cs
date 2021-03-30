@@ -9,6 +9,7 @@ public class InputManager : MonoBehaviour
         get => _instance;
     }
     private PlayerControls playerControls;
+    public bool HoldInput = false;
     private void Awake()
     {
         playerControls = new PlayerControls();
@@ -21,6 +22,8 @@ public class InputManager : MonoBehaviour
     private void OnEnable()
     {
         playerControls.Enable();
+        //playerControls.Battle.Move.started += x => { HoldInput = true; };
+        playerControls.Battle.Move.canceled += x => { HoldInput = false; };
     }
 
     private void OnDisable()

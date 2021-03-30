@@ -61,4 +61,10 @@ public class SimpleBlit : MonoBehaviour
         transitionIsActive = true;
         fadeIn = false;
     }
+
+    public void SetCutoffToZero()
+    {
+        cutoffVal = 0f;
+        TransitionMaterial.SetFloat("_Cutoff", cutoffVal);
+    }
 }

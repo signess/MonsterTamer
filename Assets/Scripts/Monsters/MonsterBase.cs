@@ -125,6 +125,11 @@ public enum MonsterType
     Bug, Rock, Ghost, Dragon, Dark, Steel, Fairy
 }
 
+public enum Stat
+{
+    Attack, Defense, SpAttack, SpDefense, Speed
+}
+
 public class TypeChart
 {
     static float[][] chart =

@@ -21,6 +21,10 @@ public class BattleHUD : MonoBehaviour
 
     public IEnumerator UpdateHP()
     {
-        yield return hpBar.LerpHP((float)_monster.HP / _monster.MaxHp);
+        if (_monster.HPChanged)
+        {
+            yield return hpBar.LerpHP((float)_monster.HP / _monster.MaxHp);
+            _monster.HPChanged = false;
+        }
     }
 }

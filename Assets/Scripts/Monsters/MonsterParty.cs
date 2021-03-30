@@ -5,6 +5,10 @@ using UnityEngine;
 public class MonsterParty : MonoBehaviour
 {
     [SerializeField] private List<Monster> monsters;
+    public List<Monster> Monsters
+    {
+        get => monsters;
+    }
 
     private void Start()
     {

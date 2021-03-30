@@ -136,7 +136,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""id"": ""36e4f102-8f97-40a3-84d4-dede564c0a1c"",
                     ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
-                    ""interactions"": """"
+                    ""interactions"": ""Press(behavior=2)""
                 },
                 {
                     ""name"": ""Confirm"",

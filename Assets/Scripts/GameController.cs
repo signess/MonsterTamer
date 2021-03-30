@@ -49,11 +49,12 @@ public class GameController : MonoBehaviour
 
         battleSystem.gameObject.SetActive(true);
         worldCamera.gameObject.SetActive(false);
+        worldCamera.GetComponent<SimpleBlit>().SetCutoffToZero();
 
         var playerParty = playerMovement.GetComponent<MonsterParty>();
         var wildMonster = FindObjectOfType<WildArea>().GetComponent<WildArea>().GetRandomWildMonster();
 
         battleSystem.StartBattle(playerParty, wildMonster);
-        worldCamera.GetComponent<SimpleBlit>().FadeOut();
+
     }
 }
