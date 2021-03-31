@@ -10,25 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cc6443024f6581247bd29a17adc73347, type: 3}
-  m_Name: Ember
+  m_Name: Sleep Powder
   m_EditorClassIdentifier: 
-  name: Ember
+  name: Sleep Powder
   description: 
-  type: 2
-  power: 45
-  accuracy: 100
-  alwaysHits: 0
+  type: 8
+  power: 0
+  accuracy: 80
   pp: 20
-  priority: 0
-  moveCategory: 0
+  moveCategory: 2
   effects:
     boosts: []
-    status: 0
-    volatileStatus: 0
-  secondaryEffects:
-  - boosts: []
-    status: 2
-    volatileStatus: 0
-    chance: 10
-    target: 0
+    status: 3
   target: 0

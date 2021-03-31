@@ -10,16 +10,22 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cc6443024f6581247bd29a17adc73347, type: 3}
-  m_Name: Bilada
+  m_Name: Sand Attack
   m_EditorClassIdentifier: 
-  name: Bilada
+  name: Sand Attack
   description: 
-  type: 17
-  power: 100
+  type: 1
+  power: 0
   accuracy: 100
-  pp: 5
-  moveCategory: 0
+  alwaysHits: 0
+  pp: 30
+  priority: 0
+  moveCategory: 2
   effects:
-    boosts: []
+    boosts:
+    - Stat: 5
+      Boost: -1
     status: 0
+    volatileStatus: 0
+  secondaryEffects: []
   target: 0

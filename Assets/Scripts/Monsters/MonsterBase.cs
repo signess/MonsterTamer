@@ -127,7 +127,10 @@ public enum MonsterType
 
 public enum Stat
 {
-    Attack, Defense, SpAttack, SpDefense, Speed
+    Attack, Defense, SpAttack, SpDefense, Speed,
+
+    //Battle Stats
+    Accuracy, Evasion
 }
 
 public class TypeChart

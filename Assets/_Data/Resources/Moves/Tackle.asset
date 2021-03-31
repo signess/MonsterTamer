@@ -17,4 +17,13 @@ MonoBehaviour:
   type: 1
   power: 40
   accuracy: 90
-  pp: 20
+  alwaysHits: 0
+  pp: 40
+  priority: 0
+  moveCategory: 0
+  effects:
+    boosts: []
+    status: 0
+    volatileStatus: 0
+  secondaryEffects: []
+  target: 0
