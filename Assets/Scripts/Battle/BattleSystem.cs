@@ -114,7 +114,7 @@ public class BattleSystem : MonoBehaviour
         OnBattleOver(won);
     }
 
-    private void OpenPartyScreen()
+    public void OpenPartyScreen()
     {
         state = BattleState.PartyScreen;
         partyScreen.SetPartyData(playerParty.Monsters);
@@ -341,6 +341,7 @@ public class BattleSystem : MonoBehaviour
     {
         currentAction = -1;
         currentMove = -1;
+        currentMember = -1;
     }
 
     public void EnableActionSelector(bool enabled)
@@ -373,7 +374,7 @@ public class BattleSystem : MonoBehaviour
             else
             {
                 actionTexts[i].transform.DOScale(Vector3.one, 0.5f * Time.deltaTime).SetEase(Ease.OutSine);
-                actionTexts[i].GetComponentInChildren<TextMeshProUGUI>().color = Color.black;
+                actionTexts[i].GetComponentInChildren<TextMeshProUGUI>().color = Color.white;
             }
         }
     }
@@ -390,7 +391,7 @@ public class BattleSystem : MonoBehaviour
             else
             {
                 moveTexts[i].transform.DOScale(Vector3.one, 0.5f * Time.deltaTime).SetEase(Ease.OutSine);
-                moveTexts[i].GetComponentInChildren<TextMeshProUGUI>().color = Color.black;
+                moveTexts[i].GetComponentInChildren<TextMeshProUGUI>().color = Color.white;
             }
         }
     }
@@ -569,6 +570,7 @@ public class BattleSystem : MonoBehaviour
 
     public void CancelButton()
     {
+        state = BattleState.ActionSelection;
         EnableActionSelector(true);
         partyScreen.gameObject.SetActive(false);
         DisableKeyNavigation();

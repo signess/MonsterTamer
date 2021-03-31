@@ -19,9 +19,9 @@ public class PlayerMovement : MonoBehaviour
         animator = GetComponentInChildren<Animator>();
     }
 
-    private void FixedUpdate()
+    private void Update()
     {
-        MovePlayer(Time.fixedDeltaTime);
+        MovePlayer(Time.deltaTime);
     }
 
     public void GetInput()

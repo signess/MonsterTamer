@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 266f06e420a1a3343b8a9672855cdda5, type: 3}
-  m_Name: MissingNo
+  m_Name: MIssingNo
   m_EditorClassIdentifier: 
   name: MissingNo
   description: 

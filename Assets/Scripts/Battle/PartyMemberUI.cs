@@ -30,7 +30,7 @@ public class PartyMemberUI : MonoBehaviour
         }
         else
         {
-            nameText.color = Color.black;
+            nameText.color = Color.white;
             transform.DOScale(Vector3.one, 0.5f * Time.deltaTime).SetEase(Ease.OutSine);
         }
     }
