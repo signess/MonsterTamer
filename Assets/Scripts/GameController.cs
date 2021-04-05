@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum GameState { FreeRoam, Battle, Dialog }
+public enum GameState { FreeRoam, Battle, Dialog, Cutscene }
 
 public class GameController : MonoBehaviour
 {
@@ -18,8 +18,18 @@ public class GameController : MonoBehaviour
 
     private void Start()
     {
-        playerController.OnEncountered += StartBattle;
+        playerController.OnEncountered += StartWildBattle;
         battleSystem.OnBattleOver += EndBattle;
+
+        playerController.OnEnterTrainersView += (Collider2D tamerCollider) =>
+        {
+            var tamer = tamerCollider.GetComponentInParent<TamerController>();
+            if (tamer != null)
+            {
+                state = GameState.Cutscene;
+                StartCoroutine(tamer.TriggerTrainerBattle(playerController));
+            }
+        };
 
         DialogManager.Instance.OnShowDialog += () => { state = GameState.Dialog; };
         DialogManager.Instance.OnCloseDialog += () => { if (state == GameState.Dialog) state = GameState.FreeRoam; };
@@ -41,9 +51,14 @@ public class GameController : MonoBehaviour
         }
     }
 
-    private void StartBattle()
+    public void StartWildBattle()
     {
-        StartCoroutine(BattleTransition());
+        StartCoroutine(WildBattleTransition());
+    }
+
+    public void StartTamerBattle(TamerController tamer)
+    {
+        StartCoroutine(TamerBattleTransition(tamer));
     }
 
     private void EndBattle(bool won)
@@ -53,7 +68,7 @@ public class GameController : MonoBehaviour
         worldCamera.gameObject.SetActive(true);
     }
 
-    private IEnumerator BattleTransition()
+    private IEnumerator WildBattleTransition()
     {
         state = GameState.Battle;
         worldCamera.GetComponent<SimpleBlit>().FadeIn();
@@ -67,6 +82,24 @@ public class GameController : MonoBehaviour
         var wildMonster = FindObjectOfType<WildArea>().GetComponent<WildArea>().GetRandomWildMonster();
 
         battleSystem.StartBattle(playerParty, wildMonster);
+
+    }
+
+    private IEnumerator TamerBattleTransition(TamerController tamer)
+    {
+        state = GameState.Battle;
+        worldCamera.GetComponent<SimpleBlit>().FadeIn();
+        yield return new WaitForSeconds(1.5f);
+
+        battleSystem.gameObject.SetActive(true);
+        worldCamera.gameObject.SetActive(false);
+        worldCamera.GetComponent<SimpleBlit>().SetCutoffToZero();
+
+        var playerParty = playerController.GetComponent<MonsterParty>();
+        var tamerParty = tamer.GetComponent<MonsterParty>();
+
+
+        battleSystem.StartTamerBattle(playerParty, tamerParty);
 
     }
 }

@@ -13,6 +13,8 @@ public class DialogManager : MonoBehaviour
     public int LettersPerSecond;
 
     private Dialog dialog;
+    private Action onDialogFinished;
+
     private int currentLine = 0;
     private bool isTyping;
 
@@ -41,18 +43,21 @@ public class DialogManager : MonoBehaviour
                 IsShowing = false;
                 currentLine = 0;
                 dialogBox.SetActive(false);
+                onDialogFinished?.Invoke();
                 OnCloseDialog?.Invoke();
             }
         }
     }
 
-    public IEnumerator ShowDialog(Dialog dialog)
+    public IEnumerator ShowDialog(Dialog dialog, Action onFinished = null)
     {
         yield return new WaitForEndOfFrame();
         OnShowDialog?.Invoke();
 
         IsShowing = true;
         this.dialog = dialog;
+        onDialogFinished = onFinished;
+
         dialogBox.SetActive(true);
         StartCoroutine(TypeDialog(dialog.Lines[0]));
     }

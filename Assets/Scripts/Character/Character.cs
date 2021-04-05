@@ -27,7 +27,7 @@ public class Character : MonoBehaviour
         targetPos.x += moveVector.x;
         targetPos.y += moveVector.y;
 
-        if (!IsWalkable(targetPos, moveVector)) yield break;
+        if (!IsPathClear(targetPos)) yield break;
 
         IsMoving = true;
         while ((targetPos - transform.position).sqrMagnitude > Mathf.Epsilon)
@@ -41,22 +41,36 @@ public class Character : MonoBehaviour
         OnMoveOver?.Invoke();
     }
 
-    private bool IsWalkable(Vector3 targetPos, Vector2 direction)
+    private bool IsPathClear(Vector3 targetPos)
     {
-        // RaycastHit2D hit = Physics2D.Raycast(targetPos, direction, .5f, GameLayers.Instance.UnwalkableLayer | GameLayers.Instance.InteractableLayer);
-        // Debug.DrawRay(targetPos, direction, Color.red);
-
-        // if (hit.collider != null)
-        // {
-        //     return false;
-        // }
-        // return true;
-
-
-        if (Physics2D.OverlapCircle(targetPos, 0.2f, GameLayers.Instance.UnwalkableLayer | GameLayers.Instance.InteractableLayer))
+        var diff = targetPos - transform.position;
+        var dir = diff.normalized;
+        if (Physics2D.BoxCast(transform.position + dir, new Vector2(0.2f, 0.2f), 0f, dir, diff.magnitude - 1, GameLayers.Instance.UnwalkableLayer | GameLayers.Instance.InteractableLayer | GameLayers.Instance.PlayerLayer))
         {
             return false;
         }
         return true;
+    }
+
+    private bool IsWalkable(Vector3 targetPos)
+    {
+        if (Physics2D.OverlapCircle(targetPos, 0.4f, GameLayers.Instance.UnwalkableLayer | GameLayers.Instance.InteractableLayer))
+        {
+            return false;
+        }
+        return true;
+    }
+
+    public void LookTowards(Vector3 targetPos)
+    {
+        var xDiff = Mathf.Floor(targetPos.x) - Mathf.Floor(transform.position.x);
+        var yDiff = Mathf.Floor(targetPos.y) - Mathf.Floor(transform.position.y);
+        if (yDiff == 0 | xDiff == 0)
+        {
+            animator.MoveX = Mathf.Clamp(xDiff, -1f, 1f);
+            animator.MoveY = Mathf.Clamp(yDiff, -1f, 1f);
+        }
+        else
+            Debug.Log("Dir error!");
     }
 }

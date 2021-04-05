@@ -1,4 +1,3 @@
-using System.Net.NetworkInformation;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -17,9 +16,11 @@ public class BattleSystem : MonoBehaviour
 
     [Header("Player")]
     [SerializeField] BattleUnit playerUnit;
+    [SerializeField] Image playerSprite;
 
     [Header("Enemy")]
     [SerializeField] BattleUnit enemyUnit;
+    [SerializeField] Image tamerSprite;
 
     [Header("Dialog Box")]
     [SerializeField] BattleDialogBox dialogBox;
@@ -46,17 +47,35 @@ public class BattleSystem : MonoBehaviour
     private int currentMember = -1;
 
     MonsterParty playerParty;
+    MonsterParty tamerParty;
     Monster wildMonster;
+
+    bool isTamerBattle = false;
+    PlayerController player;
+    TamerController tamer;
 
     private void Start()
     {
         inputManager = InputManager.Instance;
     }
 
-    public void StartBattle(MonsterParty monsterParty, Monster wildMonster)
+    public void StartBattle(MonsterParty playerParty, Monster wildMonster)
     {
-        this.playerParty = monsterParty;
+        isTamerBattle = false;
+        this.playerParty = playerParty;
         this.wildMonster = wildMonster;
+        StartCoroutine(SetupBattle());
+    }
+
+    public void StartTamerBattle(MonsterParty playerParty, MonsterParty tamerParty)
+    {
+        isTamerBattle = true;
+        this.playerParty = playerParty;
+        this.tamerParty = tamerParty;
+
+        player = playerParty.GetComponent<PlayerController>();
+        tamer = tamerParty.GetComponent<TamerController>();
+
         StartCoroutine(SetupBattle());
     }
 
@@ -78,15 +97,29 @@ public class BattleSystem : MonoBehaviour
 
     public IEnumerator SetupBattle()
     {
-        playerUnit.Setup(playerParty.GetHealthyMonster());
-        SetMoveNamesAndDetails(playerUnit.Monster.Moves);
+        if (!isTamerBattle)
+        {
+            //Wild Battle
+            playerUnit.Setup(playerParty.GetHealthyMonster());
+            enemyUnit.Setup(wildMonster);
 
-        enemyUnit.Setup(wildMonster);
+            SetMoveNamesAndDetails(playerUnit.Monster.Moves);
+            yield return dialogBox.TypeDialog($"A wild {enemyUnit.Monster.Base.Name} appeared.");
+        }
+        else
+        {
+            playerUnit.gameObject.SetActive(false);
+            enemyUnit.gameObject.SetActive(false);
+
+            playerSprite.gameObject.SetActive(true);
+            tamerSprite.gameObject.SetActive(true);
+            playerSprite.sprite = player.Sprite;
+            tamerSprite.sprite = tamer.Sprite;
+
+            yield return dialogBox.TypeDialog($"{tamer.Name} wants to battle!");
+        }
 
         partyScreen.Init();
-
-        yield return dialogBox.TypeDialog($"A wild {enemyUnit.Monster.Base.Name} appeared.");
-
         ActionSelection();
     }
 
