@@ -25,7 +25,8 @@ public class MonsterBase : ScriptableObject
 
     [SerializeField] int baseXp;
     [SerializeField] int levelUpMultiplier;
-    [SerializeField] float catchRate;
+    [Range(1, 255)]
+    [SerializeField] int catchRate = 255;
 
     [SerializeField] List<LearnableMove> learnableMoves;
 
@@ -100,7 +101,7 @@ public class MonsterBase : ScriptableObject
         get => levelUpMultiplier;
     }
 
-    public float CatchRate
+    public int CatchRate
     {
         get => catchRate;
     }

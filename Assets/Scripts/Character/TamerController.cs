@@ -1,14 +1,18 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TamerController : MonoBehaviour
+public class TamerController : MonoBehaviour, IInteractable
 {
     [SerializeField] new string name;
     [SerializeField] Sprite sprite;
     [SerializeField] Dialog dialog;
+    [SerializeField] Dialog dialogAfterBattle;
     [SerializeField] GameObject exclamation;
     [SerializeField] GameObject fov;
+
+    private bool battleLost = false;
 
     Character character;
 
@@ -23,6 +27,11 @@ public class TamerController : MonoBehaviour
     private void Start()
     {
         SetFOVRotation(character.Animator.DefaultDirection);
+    }
+
+    private void Update()
+    {
+        character.HandleUpdate();
     }
     public IEnumerator TriggerTrainerBattle(PlayerController player)
     {
@@ -39,9 +48,14 @@ public class TamerController : MonoBehaviour
         //ShowDialog
         StartCoroutine(DialogManager.Instance.ShowDialog(dialog, () =>
         {
-            Debug.Log("Start battle!");
-        })
-        );
+            GameController.Instance.StartTamerBattle(this);
+        }));
+    }
+
+    public void BattleLost()
+    {
+        battleLost = true;
+        fov.gameObject.SetActive(false);
     }
 
     public void SetFOVRotation(FacingDirection dir)
@@ -55,5 +69,22 @@ public class TamerController : MonoBehaviour
             angle = 270f;
 
         fov.transform.eulerAngles = new Vector3(0f, 0f, angle);
+    }
+
+    public void Interact(Transform initiator)
+    {
+        character.LookTowards(initiator.position);
+
+        if (!battleLost)
+        {
+            StartCoroutine(DialogManager.Instance.ShowDialog(dialog, () =>
+            {
+                GameController.Instance.StartTamerBattle(this);
+            }));
+        }
+        else
+        {
+            StartCoroutine(DialogManager.Instance.ShowDialog(dialogAfterBattle));
+        }
     }
 }

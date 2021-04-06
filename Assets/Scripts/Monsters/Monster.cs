@@ -19,7 +19,7 @@ public class Monster
     public int StatusTime { get; set; }
     public Condition VolatileStatus { get; private set; }
     public int VolatileStatusTime { get; set; }
-    public Queue<string> StatusChanges { get; private set; } = new Queue<string>();
+    public Queue<string> StatusChanges { get; private set; }
     public bool HPChanged;
     public event System.Action OnStatusChanged;
 
@@ -50,6 +50,13 @@ public class Monster
         get => GetStat(Stat.Speed);
     }
 
+    public Monster(MonsterBase mBase, int mLevel)
+    {
+        _base = mBase;
+        level = mLevel;
+        Init();
+    }
+
     public void Init()
     {
         //Generate Moves
@@ -68,6 +75,7 @@ public class Monster
         CalculateStats();
         HP = MaxHp;
 
+        StatusChanges = new Queue<string>();
         ResetStatBoost();
         Status = null;
         VolatileStatus = null;

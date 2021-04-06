@@ -56,3 +56,6 @@ TagManager:
   - name: Grass
     uniqueID: 575368567
     locked: 0
+  - name: Battle
+    uniqueID: 133210757
+    locked: 0

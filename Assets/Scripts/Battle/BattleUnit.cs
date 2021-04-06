@@ -31,10 +31,22 @@ public class BattleUnit : MonoBehaviour
         else
             battleSprite.sprite = Monster.Base.FrontSprite;
 
+        hud.gameObject.SetActive(true);
         hud.SetData(monster);
 
-        battleSprite.color = originalColor;
+        ResetSprite();
         PlayerEnterAnimation();
+    }
+
+    public void Clear()
+    {
+        hud.gameObject.SetActive(false);
+    }
+
+    public void ResetSprite()
+    {
+        transform.localScale = Vector3.one;
+        battleSprite.color = originalColor;
     }
 
     public void PlayerEnterAnimation()
@@ -77,5 +89,23 @@ public class BattleUnit : MonoBehaviour
         sequence.Append(battleSprite.transform.DOLocalMoveY(originalPosition.y - 150f, 0.5f));
         sequence.Join(battleSprite.DOFade(0f, 0.5f));
         yield return sequence.Play().WaitForCompletion();
+    }
+
+    public IEnumerator PlayCaptureAnimation()
+    {
+        var sequence = DOTween.Sequence();
+        sequence.Append(battleSprite.DOFade(0, 0.5f));
+        sequence.Join(transform.DOLocalMoveY(originalPosition.y + 50f, 0.5f));
+        sequence.Join(transform.DOScale(new Vector3(0.3f, 0.3f, 1f), 0.5f));
+        yield return sequence.WaitForCompletion();
+    }
+
+    public IEnumerator PlayBreakOutAnimation()
+    {
+        var sequence = DOTween.Sequence();
+        sequence.Append(battleSprite.DOFade(1, 0.5f));
+        sequence.Join(transform.DOLocalMoveY(originalPosition.y, 0.5f));
+        sequence.Join(transform.DOScale(new Vector3(1f, 1f, 1f), 0.5f));
+        yield return sequence.WaitForCompletion();
     }
 }

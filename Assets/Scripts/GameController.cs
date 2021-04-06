@@ -6,13 +6,17 @@ public enum GameState { FreeRoam, Battle, Dialog, Cutscene }
 
 public class GameController : MonoBehaviour
 {
+    public static GameController Instance { get; private set; }
     [SerializeField] PlayerController playerController;
     [SerializeField] BattleSystem battleSystem;
     [SerializeField] Camera worldCamera;
     GameState state;
 
+    TamerController tamer;
+
     private void Awake()
     {
+        Instance = this;
         ConditionsDB.Init();
     }
 
@@ -58,11 +62,17 @@ public class GameController : MonoBehaviour
 
     public void StartTamerBattle(TamerController tamer)
     {
+        this.tamer = tamer;
         StartCoroutine(TamerBattleTransition(tamer));
     }
 
     private void EndBattle(bool won)
     {
+        if (tamer != null && won)
+        {
+            tamer.BattleLost();
+            tamer = null;
+        }
         state = GameState.FreeRoam;
         battleSystem.gameObject.SetActive(false);
         worldCamera.gameObject.SetActive(true);
@@ -80,8 +90,9 @@ public class GameController : MonoBehaviour
 
         var playerParty = playerController.GetComponent<MonsterParty>();
         var wildMonster = FindObjectOfType<WildArea>().GetComponent<WildArea>().GetRandomWildMonster();
+        var wildMonsterCopy = new Monster(wildMonster.Base, wildMonster.Level);
 
-        battleSystem.StartBattle(playerParty, wildMonster);
+        battleSystem.StartBattle(playerParty, wildMonsterCopy);
 
     }
 
