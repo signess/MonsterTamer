@@ -24,90 +24,85 @@ public class MonsterBase : ScriptableObject
     [SerializeField] int speed;
 
     [SerializeField] int baseXp;
-    [SerializeField] int levelUpMultiplier;
+    [SerializeField] GrowthRate growthRate;
     [Range(1, 255)]
     [SerializeField] int catchRate = 255;
 
     [SerializeField] List<LearnableMove> learnableMoves;
 
     //Properties
-    public string Name
-    {
-        get => name;
-    }
+    public string Name { get => name; }
 
-    public string Description
-    {
-        get => description;
-    }
+    public string Description { get => description; }
 
-    public Sprite FrontSprite
-    {
-        get => frontSprite;
-    }
+    public Sprite FrontSprite { get => frontSprite; }
 
-    public Sprite BackSprite
-    {
-        get => backSprite;
-    }
+    public Sprite BackSprite { get => backSprite; }
 
-    public MonsterType Type1
-    {
-        get => type1;
-    }
+    public MonsterType Type1 { get => type1; }
 
-    public MonsterType Type2
-    {
-        get => type2;
-    }
+    public MonsterType Type2 { get => type2; }
 
-    public int MaxHp
-    {
-        get => maxHp;
-    }
+    public int MaxHp { get => maxHp; }
 
-    public int Attack
-    {
-        get => attack;
-    }
+    public int Attack { get => attack; }
 
-    public int Defense
-    {
-        get => defense;
-    }
+    public int Defense { get => defense; }
 
-    public int SpAttack
-    {
-        get => spAttack;
-    }
+    public int SpAttack { get => spAttack; }
 
-    public int SpDefense
-    {
-        get => spDefense;
-    }
+    public int SpDefense { get => spDefense; }
 
-    public int Speed
-    {
-        get => speed;
-    }
+    public int Speed { get => speed; }
 
-    public int BaseXp
-    {
-        get => baseXp;
-    }
+    public int BaseXp { get => baseXp; }
 
-    public int LevelUpMultiplier
-    {
-        get => levelUpMultiplier;
-    }
+    public GrowthRate GrowthRate { get => growthRate; }
 
-    public int CatchRate
-    {
-        get => catchRate;
-    }
+    public int CatchRate { get => catchRate; }
 
     public List<LearnableMove> LearnableMoves { get => learnableMoves; }
 
+    public int GetExpForLevel(int level)
+    {
+        if (growthRate == GrowthRate.Fast)
+        {
+            return 4 * (level * level * level) / 5;
+        }
+        else if (growthRate == GrowthRate.MediumFast)
+        {
+            return level * level * level;
+        }
+        else if (growthRate == GrowthRate.MediumSlow)
+        {
+            return 6 * (level * level * level) / 5 - 15 * (level * level) + 100 * level - 140;
+        }
+        else if (growthRate == GrowthRate.Slow)
+        {
+            return 5 * (level * level * level) / 4;
+        }
+        else if (growthRate == GrowthRate.Fluctuating)
+        {
+            return GetFluctuating(level);
+        }
+        return -1;
+    }
+
+    private int GetFluctuating(int level)
+    {
+        if (level <= 15)
+        {
+            return Mathf.FloorToInt(Mathf.Pow(level, 3) * ((Mathf.Floor((level + 1) / 3) + 24) / 50));
+        }
+        else if (level >= 15 && level <= 36)
+        {
+            return Mathf.FloorToInt(Mathf.Pow(level, 3) * ((level + 14) / 50));
+        }
+        else
+        {
+            return Mathf.FloorToInt(Mathf.Pow(level, 3) * ((Mathf.Floor(level / 2) + 32) / 50));
+        }
+    }
 }
 
 [System.Serializable]
@@ -118,6 +113,11 @@ public class LearnableMove
 
     public MoveBase Base { get => moveBase; }
     public int Level { get => level; }
+}
+
+public enum GrowthRate
+{
+    Fast, MediumFast, MediumSlow, Slow, Fluctuating
 }
 
 public enum MonsterType

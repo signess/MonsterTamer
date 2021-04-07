@@ -9,7 +9,7 @@ public class Monster
     [SerializeField] int level;
     public MonsterBase Base { get => _base; }
     public int Level { get => level; }
-
+    public int Exp { get; set; }
     public int HP { get; set; }
     public List<Move> Moves { get; set; }
     public Move CurrentMove { get; set; }
@@ -72,6 +72,8 @@ public class Monster
             }
         }
 
+        Exp = Base.GetExpForLevel(Level);
+
         CalculateStats();
         HP = MaxHp;
 
@@ -79,6 +81,27 @@ public class Monster
         ResetStatBoost();
         Status = null;
         VolatileStatus = null;
+    }
+
+    public bool CheckForLevelUp()
+    {
+        if (Exp >= Base.GetExpForLevel(Level + 1))
+        {
+            level++;
+            return true;
+        }
+        return false;
+    }
+
+    public LearnableMove GetLearnableMoveWhenLevelUp()
+    {
+        return Base.LearnableMoves.Where(x => x.Level == level).FirstOrDefault();
+    }
+
+    public void LearnMove(LearnableMove learnableMove)
+    {
+        if (Moves.Count > 4) return;
+        Moves.Add(new Move(learnableMove.Base));
     }
 
     private void CalculateStats()

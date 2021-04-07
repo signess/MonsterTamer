@@ -24,8 +24,8 @@ MonoBehaviour:
   spAttack: 50
   spDefense: 50
   speed: 90
-  baseXp: 0
-  levelUpMultiplier: 0
+  baseXp: 65
+  growthRate: 1
   catchRate: 114
   learnableMoves:
   - moveBase: {fileID: 11400000, guid: 2b50473ab80c8c14684aafad12b12baa, type: 2}
@@ -36,3 +36,5 @@ MonoBehaviour:
     level: 7
   - moveBase: {fileID: 11400000, guid: 44a4f4e365b9e804fbc0faf4afe36dce, type: 2}
     level: 10
+  - moveBase: {fileID: 11400000, guid: ae3485dc148e35a4e98c9e11cb30d9f6, type: 2}
+    level: 12

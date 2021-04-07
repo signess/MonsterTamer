@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -6,7 +7,7 @@ using UnityEngine;
 using DG.Tweening;
 using UnityEngine.UI;
 
-public enum BattleState { Start, ActionSelection, MoveSelection, RunningTurn, Busy, PartyScreen, AboutToUse, BattleOver }
+public enum BattleState { Start, ActionSelection, MoveSelection, RunningTurn, Busy, PartyScreen, AboutToUse, ForgetMove, BattleOver }
 
 public enum BattleAction { Move, SwitchMonster, UseItem, Run }
 
@@ -29,6 +30,7 @@ public class BattleSystem : MonoBehaviour
     [SerializeField] GameObject actionSelector;
     [SerializeField] GameObject moveSelector;
     [SerializeField] GameObject choiceBox;
+    [SerializeField] NewMoveSelectionUI newMoveSelectionUI;
 
     [Header("Texts")]
     [SerializeField] List<GameObject> actionTexts;
@@ -58,6 +60,7 @@ public class BattleSystem : MonoBehaviour
     TamerController tamer;
 
     int escapeAttempts;
+    MoveBase moveToLearn;
 
     [SerializeField] GameObject pokeballSprite;
 
@@ -105,8 +108,30 @@ public class BattleSystem : MonoBehaviour
         {
             HandleAboutToUse();
         }
+        else if (state == BattleState.ForgetMove)
+        {
+            // Action<int> onMoveSelected = (moveIndex) =>
+            // {
+            //     newMoveSelectionUI.gameObject.SetActive(false);
+            //     if (moveIndex == 4)
+            //     {
+            //         StartCoroutine(dialogBox.TypeDialog($"{playerUnit.Monster.Base.Name} did not learn {moveToLearn.Name}!"));
+            //     }
+            //     else
+            //     {
+            //         var selectedMove = playerUnit.Monster.Moves[moveIndex].Base;
+            //         StartCoroutine(dialogBox.TypeDialog($"{playerUnit.Monster.Base.Name} forgot {selectedMove.Name}."));
+            //         StartCoroutine(dialogBox.TypeDialog($"{playerUnit.Monster.Base.Name} learned {selectedMove.Name}."));
+            //         playerUnit.Monster.Moves[moveIndex] = new Move(moveToLearn);
+            //     }
+            //     moveToLearn = null;
+            //     state = BattleState.RunningTurn;
+            // };
+            // newMoveSelectionUI.HandleMoveSelection(onMoveSelected);
+        }
 
     }
+
 
     public IEnumerator SetupBattle()
     {
@@ -190,6 +215,40 @@ public class BattleSystem : MonoBehaviour
 
         state = BattleState.AboutToUse;
         EnableChoiceBox(true);
+    }
+
+    private IEnumerator ChooseMoveToForget(Monster monster, MoveBase newMove)
+    {
+        state = BattleState.Busy;
+        yield return dialogBox.TypeDialog($"Select a move to be replaced by {newMove.Name}: ");
+        newMoveSelectionUI.gameObject.SetActive(true);
+        newMoveSelectionUI.SetMoveData(monster.Moves.Select(x => x.Base).ToList());
+        moveToLearn = newMove;
+        state = BattleState.ForgetMove;
+    }
+
+    public void SelectedMoveToForget(int selectedMove)
+    {
+        Debug.Log($"Click on button {selectedMove}");
+        StartCoroutine(ForgetMove(selectedMove));
+    }
+
+    private IEnumerator ForgetMove(int selectedMove)
+    {
+        newMoveSelectionUI.gameObject.SetActive(false);
+        if (selectedMove == 4)
+        {
+            yield return dialogBox.TypeDialog($"{playerUnit.Monster.Base.Name} did not learn {moveToLearn.Name}!");
+        }
+        else
+        {
+            var oldMove = playerUnit.Monster.Moves[selectedMove].Base;
+            yield return dialogBox.TypeDialog($"{playerUnit.Monster.Base.Name} forgot {oldMove.Name}.");
+            yield return dialogBox.TypeDialog($"{playerUnit.Monster.Base.Name} learned {moveToLearn.Name}.");
+            playerUnit.Monster.Moves[selectedMove] = new Move(moveToLearn);
+        }
+        moveToLearn = null;
+        state = BattleState.RunningTurn;
     }
 
     private void HandleActionSelection()
@@ -651,11 +710,7 @@ public class BattleSystem : MonoBehaviour
 
             if (targetUnit.Monster.HP <= 0)
             {
-                yield return dialogBox.TypeDialog($"{targetUnit.Monster.Base.Name} fainted!");
-                yield return targetUnit.PlayFaintAnimation();
-
-                yield return new WaitForSeconds(1.5f);
-                CheckForBattleOver(targetUnit);
+                yield return HandlePokemonFainted(targetUnit);
             }
         }
         else
@@ -701,11 +756,7 @@ public class BattleSystem : MonoBehaviour
         yield return sourceUnit.HUD.UpdateHP();
         if (sourceUnit.Monster.HP <= 0)
         {
-            yield return dialogBox.TypeDialog($"{sourceUnit.Monster.Base.Name} fainted!");
-            yield return sourceUnit.PlayFaintAnimation();
-
-            yield return new WaitForSeconds(1.5f);
-            CheckForBattleOver(sourceUnit);
+            yield return HandlePokemonFainted(sourceUnit);
             yield return new WaitUntil(() => state == BattleState.RunningTurn);
         }
     }
@@ -742,6 +793,59 @@ public class BattleSystem : MonoBehaviour
             var message = monster.StatusChanges.Dequeue();
             yield return dialogBox.TypeDialog(message);
         }
+    }
+
+    private IEnumerator HandlePokemonFainted(BattleUnit faintedUnit)
+    {
+        yield return dialogBox.TypeDialog($"{faintedUnit.Monster.Base.Name} fainted!");
+        yield return faintedUnit.PlayFaintAnimation();
+        yield return new WaitForSeconds(2f);
+
+        if (!faintedUnit.IsPlayerUnit)
+        {
+            //Exp gain
+            int expYield = faintedUnit.Monster.Base.BaseXp;
+            int enemyLevel = faintedUnit.Monster.Level;
+            float tamerBonus = (isTamerBattle) ? 1.5f : 1f;
+
+            int expGain = Mathf.FloorToInt((expYield * enemyLevel * tamerBonus) / 7);
+            playerUnit.Monster.Exp += expGain;
+            yield return dialogBox.TypeDialog($"{playerUnit.Monster.Base.Name} gained {expGain} experience points.");
+            yield return playerUnit.HUD.SetExpSmooth();
+
+            //Check level up
+            while (playerUnit.Monster.CheckForLevelUp())
+            {
+                playerUnit.HUD.SetLevel();
+                yield return dialogBox.TypeDialog($"{playerUnit.Monster.Base.Name} grew to level {playerUnit.Monster.Level}!");
+
+                //Try to learn a new move
+                var newMove = playerUnit.Monster.GetLearnableMoveWhenLevelUp();
+                if (newMove != null)
+                {
+                    if (playerUnit.Monster.Moves.Count < 4)
+                    {
+                        playerUnit.Monster.LearnMove(newMove);
+                        yield return dialogBox.TypeDialog($"{playerUnit.Monster.Base.Name} learned {newMove.Base.Name}.");
+                        SetMoveNamesAndDetails(playerUnit.Monster.Moves);
+                    }
+                    else
+                    {
+                        yield return dialogBox.TypeDialog($"{playerUnit.Monster.Base.Name} is trying to learn {newMove.Base.Name}.");
+                        yield return dialogBox.TypeDialog($"But it cannot learn more than four moves!");
+                        yield return ChooseMoveToForget(playerUnit.Monster, newMove.Base);
+                        yield return new WaitUntil(() => state != BattleState.ForgetMove);
+                        yield return new WaitForSeconds(2f);
+                    }
+                }
+
+                yield return playerUnit.HUD.SetExpSmooth(true);
+            }
+
+            yield return new WaitForSeconds(1f);
+        }
+
+        CheckForBattleOver(faintedUnit);
     }
 
     private void CheckForBattleOver(BattleUnit faintedUnit)
