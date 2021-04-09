@@ -12,11 +12,20 @@ public class Character : MonoBehaviour
     private void Awake()
     {
         animator = GetComponentInChildren<CharacterAnimator>();
+        SetPositionAndSnapToTile(transform.position);
     }
 
     public void HandleUpdate()
     {
         animator.IsMoving = IsMoving;
+    }
+
+    public void SetPositionAndSnapToTile(Vector2 pos)
+    {
+        pos.x = Mathf.Floor(pos.x) + 0.5f;
+        pos.y = Mathf.Floor(pos.y) + 0.5f;
+
+        transform.position = pos;
     }
 
     public IEnumerator Move(Vector2 moveVector, Action OnMoveOver = null)

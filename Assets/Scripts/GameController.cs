@@ -22,18 +22,7 @@ public class GameController : MonoBehaviour
 
     private void Start()
     {
-        playerController.OnEncountered += StartWildBattle;
         battleSystem.OnBattleOver += EndBattle;
-
-        playerController.OnEnterTrainersView += (Collider2D tamerCollider) =>
-        {
-            var tamer = tamerCollider.GetComponentInParent<TamerController>();
-            if (tamer != null)
-            {
-                state = GameState.Cutscene;
-                StartCoroutine(tamer.TriggerTrainerBattle(playerController));
-            }
-        };
 
         DialogManager.Instance.OnShowDialog += () => { state = GameState.Dialog; };
         DialogManager.Instance.OnCloseDialog += () => { if (state == GameState.Dialog) state = GameState.FreeRoam; };
@@ -53,6 +42,12 @@ public class GameController : MonoBehaviour
         {
             DialogManager.Instance.HandleUpdate();
         }
+    }
+
+    public void OnEnterTamersView(TamerController tamer)
+    {
+        state = GameState.Cutscene;
+        StartCoroutine(tamer.TriggerTrainerBattle(playerController));
     }
 
     public void StartWildBattle()
