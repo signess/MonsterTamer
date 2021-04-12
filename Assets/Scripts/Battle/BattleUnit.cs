@@ -10,7 +10,7 @@ public class BattleUnit : MonoBehaviour
     { get => isPlayerUnit; }
     [SerializeField] BattleHUD hud;
     public BattleHUD HUD { get => hud; }
-    [SerializeField] private Image battleSprite;
+    [SerializeField] private SpriteRenderer battleSprite;
     Vector3 originalPosition;
     Color originalColor;
 
@@ -18,7 +18,7 @@ public class BattleUnit : MonoBehaviour
 
     private void Awake()
     {
-        battleSprite = GetComponent<Image>();
+        battleSprite = GetComponent<SpriteRenderer>();
         originalPosition = battleSprite.transform.localPosition;
         originalColor = battleSprite.color;
     }
@@ -35,6 +35,7 @@ public class BattleUnit : MonoBehaviour
         hud.SetData(monster);
 
         ResetSprite();
+
         PlayerEnterAnimation();
     }
 
@@ -52,9 +53,9 @@ public class BattleUnit : MonoBehaviour
     public void PlayerEnterAnimation()
     {
         if (isPlayerUnit)
-            battleSprite.transform.localPosition = new Vector3(-500f, originalPosition.y);
+            battleSprite.transform.localPosition = new Vector3(-4, originalPosition.y);
         else
-            battleSprite.transform.localPosition = new Vector3(500, originalPosition.y);
+            battleSprite.transform.localPosition = new Vector3(4, originalPosition.y);
 
         battleSprite.transform.DOLocalMoveX(originalPosition.x, 1f);
     }
@@ -63,9 +64,9 @@ public class BattleUnit : MonoBehaviour
     {
         var sequence = DOTween.Sequence();
         if (isPlayerUnit)
-            sequence.Append(battleSprite.transform.DOLocalMoveX(originalPosition.x + 50f, 0.25f));
+            sequence.Append(battleSprite.transform.DOLocalMoveX(originalPosition.x + 3, 0.25f));
         else
-            sequence.Append(battleSprite.transform.DOLocalMoveX(originalPosition.x - 50f, 0.25f));
+            sequence.Append(battleSprite.transform.DOLocalMoveX(originalPosition.x - 3, 0.25f));
 
         sequence.Append(battleSprite.transform.DOLocalMoveX(originalPosition.x, 0.25f));
         yield return sequence.Play().WaitForCompletion();
@@ -86,7 +87,7 @@ public class BattleUnit : MonoBehaviour
     public IEnumerator PlayFaintAnimation()
     {
         var sequence = DOTween.Sequence();
-        sequence.Append(battleSprite.transform.DOLocalMoveY(originalPosition.y - 150f, 0.5f));
+        sequence.Append(battleSprite.transform.DOLocalMoveY(originalPosition.y - 4f, 0.5f));
         sequence.Join(battleSprite.DOFade(0f, 0.5f));
         yield return sequence.Play().WaitForCompletion();
     }
@@ -95,7 +96,7 @@ public class BattleUnit : MonoBehaviour
     {
         var sequence = DOTween.Sequence();
         sequence.Append(battleSprite.DOFade(0, 0.5f));
-        sequence.Join(transform.DOLocalMoveY(originalPosition.y + 50f, 0.5f));
+        sequence.Join(transform.DOLocalMoveY(originalPosition.y + 3f, 0.5f));
         sequence.Join(transform.DOScale(new Vector3(0.3f, 0.3f, 1f), 0.5f));
         yield return sequence.WaitForCompletion();
     }

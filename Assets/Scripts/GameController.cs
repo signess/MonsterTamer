@@ -1,5 +1,5 @@
 using System.Collections;
-using System.Collections.Generic;
+using Cinemachine;
 using UnityEngine;
 
 public enum GameState { FreeRoam, Battle, Dialog, Cutscene }
@@ -10,6 +10,7 @@ public class GameController : MonoBehaviour
     [SerializeField] PlayerController playerController;
     [SerializeField] BattleSystem battleSystem;
     [SerializeField] Camera worldCamera;
+
     GameState state;
 
     TamerController tamer;
@@ -43,6 +44,7 @@ public class GameController : MonoBehaviour
             DialogManager.Instance.HandleUpdate();
         }
     }
+
 
     public void OnEnterTamersView(TamerController tamer)
     {
@@ -80,7 +82,8 @@ public class GameController : MonoBehaviour
         yield return new WaitForSeconds(1.5f);
 
         battleSystem.gameObject.SetActive(true);
-        worldCamera.gameObject.SetActive(false);
+        //worldCamera.gameObject.SetActive(false);
+        CameraManager.Instance.SwitchPriority(CameraManager.Instance.OverworldCamera, CameraManager.Instance.BattleEnemyCamera);
         worldCamera.GetComponent<SimpleBlit>().SetCutoffToZero();
 
         var playerParty = playerController.GetComponent<MonsterParty>();

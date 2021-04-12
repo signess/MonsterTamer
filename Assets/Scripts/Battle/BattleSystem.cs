@@ -17,11 +17,13 @@ public class BattleSystem : MonoBehaviour
 
     [Header("Player")]
     [SerializeField] BattleUnit playerUnit;
-    [SerializeField] Image playerSprite;
+    [SerializeField] SpriteRenderer playerSprite;
 
     [Header("Enemy")]
     [SerializeField] BattleUnit enemyUnit;
-    [SerializeField] Image tamerSprite;
+    [SerializeField] SpriteRenderer tamerSprite;
+    [Header("HUDs")]
+    [SerializeField] CanvasGroup hudCanvasGroup;
 
     [Header("Dialog Box")]
     [SerializeField] BattleDialogBox dialogBox;
@@ -135,16 +137,19 @@ public class BattleSystem : MonoBehaviour
 
     public IEnumerator SetupBattle()
     {
+        ToogleHUD(false);
         playerUnit.Clear();
         enemyUnit.Clear();
         if (!isTamerBattle)
         {
             //Wild Battle
-            playerUnit.Setup(playerParty.GetHealthyMonster());
             enemyUnit.Setup(wildMonster);
 
-            SetMoveNamesAndDetails(playerUnit.Monster.Moves);
+            playerUnit.gameObject.SetActive(false);
+            playerSprite.gameObject.SetActive(true);
+            playerSprite.sprite = player.Sprite;
             yield return dialogBox.TypeDialog($"A wild {enemyUnit.Monster.Base.Name} appeared.");
+
         }
         else
         {
@@ -165,14 +170,21 @@ public class BattleSystem : MonoBehaviour
             enemyUnit.Setup(enemyMonster);
             yield return dialogBox.TypeDialog($"{tamer.Name} send out {enemyMonster.Base.Name}.");
 
-            //Send out first pokemon of the player
-            playerSprite.gameObject.SetActive(false);
-            playerUnit.gameObject.SetActive(true);
-            var playerMonster = playerParty.GetHealthyMonster();
-            playerUnit.Setup(playerMonster);
-            yield return dialogBox.TypeDialog($"Go {playerMonster.Base.Name}!");
-            SetMoveNamesAndDetails(playerUnit.Monster.Moves);
+
         }
+        CameraManager.Instance.SwitchPriority(CameraManager.Instance.BattleEnemyCamera, CameraManager.Instance.BattlePlayerCamera);
+        yield return new WaitForSeconds(1f);
+        //Send out first pokemon of the player
+        playerSprite.gameObject.SetActive(false);
+        playerUnit.gameObject.SetActive(true);
+        var playerMonster = playerParty.GetHealthyMonster();
+        playerUnit.Setup(playerMonster);
+        yield return dialogBox.TypeDialog($"Go {playerMonster.Base.Name}!");
+        CameraManager.Instance.SwitchPriority(CameraManager.Instance.BattlePlayerCamera, CameraManager.Instance.BattleMainCamera);
+        yield return new WaitForSeconds(1f);
+        ToogleHUD(true);
+        SetMoveNamesAndDetails(playerUnit.Monster.Moves);
+
         escapeAttempts = 0;
         partyScreen.Init();
         ActionSelection();
@@ -1063,5 +1075,13 @@ public class BattleSystem : MonoBehaviour
                 state = BattleState.RunningTurn;
             }
         }
+    }
+
+    private void ToogleHUD(bool on)
+    {
+        if (on)
+            hudCanvasGroup.alpha = 1;
+        else
+            hudCanvasGroup.alpha = 0;
     }
 }
