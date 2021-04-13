@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections;
 using Cinemachine;
 using UnityEngine;
@@ -70,21 +71,37 @@ public class GameController : MonoBehaviour
             tamer.BattleLost();
             tamer = null;
         }
+
+        StartCoroutine(TransitionEndBattle());
         state = GameState.FreeRoam;
+
+        //worldCamera.gameObject.SetActive(true);
+    }
+
+    private IEnumerator TransitionEndBattle()
+    {
+        SceneTransitionController.Instance.ChangeTransition(SceneTransitionController.Instance.SimpleFadeTransition);
+        SceneTransitionController.Instance.ToogleTransition();
+        yield return new WaitForSeconds(1.5f);
         battleSystem.gameObject.SetActive(false);
-        worldCamera.gameObject.SetActive(true);
+        CameraManager.Instance.SwitchPriority(CameraManager.Instance.OverworldCamera);
+        SceneTransitionController.Instance.ChangeTransition(SceneTransitionController.Instance.SimpleFadeTransition);
+        SceneTransitionController.Instance.ToogleTransition(2f);
+        yield return new WaitForSeconds(0.5f);
     }
 
     private IEnumerator WildBattleTransition()
     {
         state = GameState.Battle;
-        worldCamera.GetComponent<SimpleBlit>().FadeIn();
+        SceneTransitionController.Instance.ChangeTransition(SceneTransitionController.Instance.MosaicBattleTransition);
+        SceneTransitionController.Instance.ToogleTransition();
         yield return new WaitForSeconds(1.5f);
 
         battleSystem.gameObject.SetActive(true);
-        //worldCamera.gameObject.SetActive(false);
-        CameraManager.Instance.SwitchPriority(CameraManager.Instance.OverworldCamera, CameraManager.Instance.BattleEnemyCamera);
-        worldCamera.GetComponent<SimpleBlit>().SetCutoffToZero();
+        CameraManager.Instance.SwitchPriority(CameraManager.Instance.BattleEnemyCamera);
+        SceneTransitionController.Instance.ChangeTransition(SceneTransitionController.Instance.VerticalFadeTransition);
+        SceneTransitionController.Instance.ToogleTransition();
+        yield return new WaitForSeconds(0.5f);
 
         var playerParty = playerController.GetComponent<MonsterParty>();
         var wildMonster = FindObjectOfType<WildArea>().GetComponent<WildArea>().GetRandomWildMonster();
@@ -97,12 +114,15 @@ public class GameController : MonoBehaviour
     private IEnumerator TamerBattleTransition(TamerController tamer)
     {
         state = GameState.Battle;
-        worldCamera.GetComponent<SimpleBlit>().FadeIn();
+        SceneTransitionController.Instance.ChangeTransition(SceneTransitionController.Instance.MosaicBattleTransition);
+        SceneTransitionController.Instance.ToogleTransition();
         yield return new WaitForSeconds(1.5f);
 
         battleSystem.gameObject.SetActive(true);
-        worldCamera.gameObject.SetActive(false);
-        worldCamera.GetComponent<SimpleBlit>().SetCutoffToZero();
+        CameraManager.Instance.SwitchPriority(CameraManager.Instance.BattleEnemyCamera);
+        SceneTransitionController.Instance.ChangeTransition(SceneTransitionController.Instance.VerticalFadeTransition);
+        SceneTransitionController.Instance.ToogleTransition();
+        yield return new WaitForSeconds(0.5f);
 
         var playerParty = playerController.GetComponent<MonsterParty>();
         var tamerParty = tamer.GetComponent<MonsterParty>();

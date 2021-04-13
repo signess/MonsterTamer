@@ -9,24 +9,26 @@ public class CameraManager : MonoBehaviour
     [SerializeField] CinemachineVirtualCamera battleMainCamera;
     [SerializeField] CinemachineVirtualCamera battleEnemyCamera;
     [SerializeField] CinemachineVirtualCamera battlePlayerCamera;
+    [SerializeField] CinemachineVirtualCamera battlePlayerCharacterCamera;
 
     public CinemachineVirtualCamera OverworldCamera { get => overworldCamera; }
     public CinemachineVirtualCamera BattleMainCamera { get => battleMainCamera; }
     public CinemachineVirtualCamera BattleEnemyCamera { get => battleEnemyCamera; }
     public CinemachineVirtualCamera BattlePlayerCamera { get => battlePlayerCamera; }
-
-    private CinemachineVirtualCamera actualCamera;
-
+    public CinemachineVirtualCamera BattlePlayerCharacterCamera { get => battlePlayerCharacterCamera; }
 
     private void Awake()
     {
         Instance = this;
-        actualCamera = overworldCamera;
     }
 
-    public void SwitchPriority(CinemachineVirtualCamera from, CinemachineVirtualCamera to)
+    public void SwitchPriority(CinemachineVirtualCamera to)
     {
-        from.Priority = 0;
+        overworldCamera.Priority = 0;
+        battleEnemyCamera.Priority = 0;
+        battleMainCamera.Priority = 0;
+        battlePlayerCamera.Priority = 0;
+        battlePlayerCharacterCamera.Priority = 0;
         to.Priority = 1;
     }
 }

@@ -142,14 +142,12 @@ public class BattleSystem : MonoBehaviour
         enemyUnit.Clear();
         if (!isTamerBattle)
         {
-            //Wild Battle
-            enemyUnit.Setup(wildMonster);
-
             playerUnit.gameObject.SetActive(false);
             playerSprite.gameObject.SetActive(true);
             playerSprite.sprite = player.Sprite;
+            //Wild Battle
+            enemyUnit.Setup(wildMonster, true);
             yield return dialogBox.TypeDialog($"A wild {enemyUnit.Monster.Base.Name} appeared.");
-
         }
         else
         {
@@ -167,20 +165,18 @@ public class BattleSystem : MonoBehaviour
             tamerSprite.gameObject.SetActive(false);
             enemyUnit.gameObject.SetActive(true);
             var enemyMonster = tamerParty.GetHealthyMonster();
-            enemyUnit.Setup(enemyMonster);
             yield return dialogBox.TypeDialog($"{tamer.Name} send out {enemyMonster.Base.Name}.");
-
-
+            enemyUnit.Setup(enemyMonster);
         }
-        CameraManager.Instance.SwitchPriority(CameraManager.Instance.BattleEnemyCamera, CameraManager.Instance.BattlePlayerCamera);
+        CameraManager.Instance.SwitchPriority(CameraManager.Instance.BattlePlayerCharacterCamera);
         yield return new WaitForSeconds(1f);
         //Send out first pokemon of the player
+        var playerMonster = playerParty.GetHealthyMonster();
         playerSprite.gameObject.SetActive(false);
         playerUnit.gameObject.SetActive(true);
-        var playerMonster = playerParty.GetHealthyMonster();
         playerUnit.Setup(playerMonster);
         yield return dialogBox.TypeDialog($"Go {playerMonster.Base.Name}!");
-        CameraManager.Instance.SwitchPriority(CameraManager.Instance.BattlePlayerCamera, CameraManager.Instance.BattleMainCamera);
+        CameraManager.Instance.SwitchPriority(CameraManager.Instance.BattleMainCamera);
         yield return new WaitForSeconds(1f);
         ToogleHUD(true);
         SetMoveNamesAndDetails(playerUnit.Monster.Moves);
@@ -694,8 +690,25 @@ public class BattleSystem : MonoBehaviour
 
         if (CheckMoveAccuracy(move, sourceUnit.Monster, targetUnit.Monster))
         {
-            yield return sourceUnit.PlayAttackAnimation();
+            ToogleHUD(false);
+
+            if (sourceUnit.IsPlayerUnit)
+                CameraManager.Instance.SwitchPriority(CameraManager.Instance.BattlePlayerCamera);
+            else
+                CameraManager.Instance.SwitchPriority(CameraManager.Instance.BattleEnemyCamera);
             yield return new WaitForSeconds(.5f);
+
+            yield return sourceUnit.PlayAttackAnimation();
+
+            yield return new WaitForSeconds(.5f);
+
+            if (sourceUnit.IsPlayerUnit)
+                CameraManager.Instance.SwitchPriority(CameraManager.Instance.BattleMainCamera);
+            else
+                CameraManager.Instance.SwitchPriority(CameraManager.Instance.BattleMainCamera);
+            yield return new WaitForSeconds(.5f);
+            ToogleHUD(true);
+
             yield return targetUnit.PlayHitAnimation();
 
             if (move.Base.MoveCategory == MoveCategory.Status)
@@ -973,8 +986,8 @@ public class BattleSystem : MonoBehaviour
 
         //Animations
         Sequence throwSequence = DOTween.Sequence();
-        throwSequence.Append(pokeball.transform.DOJump(enemyUnit.transform.position, 2f, 1, .8f));
-        throwSequence.Join(pokeball.transform.DORotate(new Vector3(0, 0, 720), .8f, RotateMode.FastBeyond360));
+        throwSequence.Append(pokeball.transform.DOJump(enemyUnit.transform.position, 1.5f, 1, .8f));
+        throwSequence.Join(pokeball.transform.DORotate(new Vector3(0, 0, -720), .8f, RotateMode.FastBeyond360));
 
         throwSequence.Append(pokeball.transform.DOJump(enemyUnit.transform.position + new Vector3(0, 1), 1f, 1, 0.5f));
         yield return throwSequence.WaitForCompletion();
@@ -982,7 +995,7 @@ public class BattleSystem : MonoBehaviour
         yield return enemyUnit.PlayCaptureAnimation();
         yield return new WaitForSeconds(1f);
 
-
+        CameraManager.Instance.SwitchPriority(CameraManager.Instance.BattleEnemyCamera);
         Sequence captureSequence = DOTween.Sequence();
         captureSequence.Append(pokeball.transform.DOMoveY(enemyUnit.transform.position.y - 1f, .5f)).SetEase(Ease.OutBounce);
 
@@ -996,6 +1009,7 @@ public class BattleSystem : MonoBehaviour
         if (shakeCount == 4)
         {
             yield return dialogBox.TypeDialog($"{enemyUnit.Monster.Base.Name} was caught!");
+            CameraManager.Instance.SwitchPriority(CameraManager.Instance.BattleMainCamera);
 
             playerParty.AddMonster(enemyUnit.Monster);
             yield return dialogBox.TypeDialog($"{enemyUnit.Monster.Base.Name} has been added to your party!");
@@ -1005,6 +1019,7 @@ public class BattleSystem : MonoBehaviour
         else
         {
             yield return new WaitForSeconds(1f);
+            CameraManager.Instance.SwitchPriority(CameraManager.Instance.BattleMainCamera);
             pokeball.DOFade(0, 0.2f);
             yield return enemyUnit.PlayBreakOutAnimation();
 
