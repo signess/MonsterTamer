@@ -3,7 +3,7 @@ using System.Collections;
 using Cinemachine;
 using UnityEngine;
 
-public enum GameState { FreeRoam, Battle, Dialog, Cutscene }
+public enum GameState { FreeRoam, Battle, Dialog, Cutscene, Paused }
 
 public class GameController : MonoBehaviour
 {
@@ -13,6 +13,7 @@ public class GameController : MonoBehaviour
     [SerializeField] Camera worldCamera;
 
     GameState state;
+    GameState prevState;
 
     TamerController tamer;
 
@@ -46,6 +47,20 @@ public class GameController : MonoBehaviour
         }
     }
 
+    public void PauseGame(bool pause)
+    {
+        if (pause)
+        {
+            prevState = state;
+            state = GameState.Paused;
+        }
+        else
+        {
+            state = prevState;
+        }
+
+
+    }
 
     public void OnEnterTamersView(TamerController tamer)
     {
@@ -80,14 +95,17 @@ public class GameController : MonoBehaviour
 
     private IEnumerator TransitionEndBattle()
     {
-        SceneTransitionController.Instance.ChangeTransition(SceneTransitionController.Instance.SimpleFadeTransition);
-        SceneTransitionController.Instance.ToogleTransition();
-        yield return new WaitForSeconds(1.5f);
+       // SceneTransitionController.Instance.ChangeTransition(SceneTransitionController.Instance.SimpleFadeTransition);
+       // SceneTransitionController.Instance.ToogleTransition();
+        yield return Fader.Instance.FadeIn(.5f);
+
         battleSystem.gameObject.SetActive(false);
         CameraManager.Instance.SwitchPriority(CameraManager.Instance.OverworldCamera);
-        SceneTransitionController.Instance.ChangeTransition(SceneTransitionController.Instance.SimpleFadeTransition);
-        SceneTransitionController.Instance.ToogleTransition(2f);
-        yield return new WaitForSeconds(0.5f);
+
+        yield return Fader.Instance.FadeOut(.5f);
+      //  SceneTransitionController.Instance.ChangeTransition(SceneTransitionController.Instance.SimpleFadeTransition);
+       // SceneTransitionController.Instance.ToogleTransition(2f);
+     //   yield return new WaitForSeconds(0.5f);
     }
 
     private IEnumerator WildBattleTransition()
@@ -96,12 +114,14 @@ public class GameController : MonoBehaviour
         SceneTransitionController.Instance.ChangeTransition(SceneTransitionController.Instance.MosaicBattleTransition);
         SceneTransitionController.Instance.ToogleTransition();
         yield return new WaitForSeconds(1.5f);
+        yield return Fader.Instance.FadeIn(0.1f);
 
         battleSystem.gameObject.SetActive(true);
         CameraManager.Instance.SwitchPriority(CameraManager.Instance.BattleEnemyCamera);
         SceneTransitionController.Instance.ChangeTransition(SceneTransitionController.Instance.VerticalFadeTransition);
-        SceneTransitionController.Instance.ToogleTransition();
+        SceneTransitionController.Instance.ToogleTransition(100f);
         yield return new WaitForSeconds(0.5f);
+        
 
         var playerParty = playerController.GetComponent<MonsterParty>();
         var wildMonster = FindObjectOfType<WildArea>().GetComponent<WildArea>().GetRandomWildMonster();
@@ -117,6 +137,7 @@ public class GameController : MonoBehaviour
         SceneTransitionController.Instance.ChangeTransition(SceneTransitionController.Instance.MosaicBattleTransition);
         SceneTransitionController.Instance.ToogleTransition();
         yield return new WaitForSeconds(1.5f);
+        yield return Fader.Instance.FadeIn(0.1f);
 
         battleSystem.gameObject.SetActive(true);
         CameraManager.Instance.SwitchPriority(CameraManager.Instance.BattleEnemyCamera);

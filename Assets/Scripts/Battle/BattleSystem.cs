@@ -147,6 +147,7 @@ public class BattleSystem : MonoBehaviour
             playerSprite.sprite = player.Sprite;
             //Wild Battle
             enemyUnit.Setup(wildMonster, true);
+            yield return Fader.Instance.FadeOut(.5f);
             yield return dialogBox.TypeDialog($"A wild {enemyUnit.Monster.Base.Name} appeared.");
         }
         else
@@ -159,6 +160,7 @@ public class BattleSystem : MonoBehaviour
             playerSprite.sprite = player.Sprite;
             tamerSprite.sprite = tamer.Sprite;
 
+            yield return Fader.Instance.FadeOut(1f);
             yield return dialogBox.TypeDialog($"{tamer.Name} wants to battle!");
 
             //Send out first pokemon of the trainer

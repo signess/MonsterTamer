@@ -16,6 +16,7 @@ public class PlayerController : MonoBehaviour
 
     public string Name { get => name; }
     public Sprite Sprite { get => sprite; }
+    public Character Character { get => character; }
 
     private void Start()
     {
