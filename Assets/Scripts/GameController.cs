@@ -17,6 +17,9 @@ public class GameController : MonoBehaviour
 
     TamerController tamer;
 
+    public SceneDetails CurrentScene { get; private set; }
+    public SceneDetails PrevScene { get; private set; }
+
     private void Awake()
     {
         Instance = this;
@@ -111,6 +114,11 @@ public class GameController : MonoBehaviour
     private IEnumerator WildBattleTransition()
     {
         state = GameState.Battle;
+
+        var playerParty = playerController.GetComponent<MonsterParty>();
+        var wildMonster = CurrentScene.GetComponent<WildArea>().GetRandomWildMonster();
+        var wildMonsterCopy = new Monster(wildMonster.Base, wildMonster.Level);
+
         SceneTransitionController.Instance.ChangeTransition(SceneTransitionController.Instance.MosaicBattleTransition);
         SceneTransitionController.Instance.ToogleTransition();
         yield return new WaitForSeconds(1.5f);
@@ -120,15 +128,9 @@ public class GameController : MonoBehaviour
         CameraManager.Instance.SwitchPriority(CameraManager.Instance.BattleEnemyCamera);
         SceneTransitionController.Instance.ChangeTransition(SceneTransitionController.Instance.VerticalFadeTransition);
         SceneTransitionController.Instance.ToogleTransition(100f);
-        yield return new WaitForSeconds(0.5f);
-        
-
-        var playerParty = playerController.GetComponent<MonsterParty>();
-        var wildMonster = FindObjectOfType<WildArea>().GetComponent<WildArea>().GetRandomWildMonster();
-        var wildMonsterCopy = new Monster(wildMonster.Base, wildMonster.Level);
+        yield return new WaitForSeconds(0.5f);       
 
         battleSystem.StartBattle(playerParty, wildMonsterCopy);
-
     }
 
     private IEnumerator TamerBattleTransition(TamerController tamer)
@@ -151,5 +153,11 @@ public class GameController : MonoBehaviour
 
         battleSystem.StartTamerBattle(playerParty, tamerParty);
 
+    }
+
+    public void SetCurrentScene(SceneDetails currentScene)
+    {
+        PrevScene = CurrentScene;
+        CurrentScene = currentScene;
     }
 }

@@ -1,17 +1,19 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PersistentObjectsSpawner : MonoBehaviour
 {
-    [SerializeField] GameObject persistentObjectsPrefab;
+    [SerializeField] private GameObject persistentObjectsPrefab;
 
     private void Awake()
     {
         var existingObjs = FindObjectsOfType<PersistentObjects>();
-        if(existingObjs.Length == 0)
+        if (existingObjs.Length == 0)
         {
-            Instantiate(persistentObjectsPrefab, Vector3.zero, Quaternion.identity);
+            var spawnPos = Vector3.zero;
+            var grid = FindObjectOfType<Grid>();
+            if (grid != null)
+                spawnPos = grid.transform.position;
+            Instantiate(persistentObjectsPrefab, spawnPos, Quaternion.identity);
         }
     }
 }
