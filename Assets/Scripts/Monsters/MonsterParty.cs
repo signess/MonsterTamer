@@ -8,6 +8,7 @@ public class MonsterParty : MonoBehaviour
     public List<Monster> Monsters
     {
         get => monsters;
+        set => monsters = value;
     }
 
     private void Start()

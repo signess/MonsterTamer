@@ -83,6 +83,41 @@ public class Monster
         VolatileStatus = null;
     }
 
+    public Monster(MonsterSaveData saveData)
+    {
+        _base = MonstersDB.GetMonsterByName(saveData.name);
+        HP = saveData.hp;
+        level = saveData.level;
+        Exp = saveData.exp;
+
+        if (saveData.statusId != null)
+            Status = ConditionsDB.Conditions[saveData.statusId.Value];
+        else
+            Status = null;
+
+        //Restore Moves
+        Moves = saveData.moves.Select(s => new Move(s)).ToList();
+
+        CalculateStats();
+        StatusChanges = new Queue<string>();
+        ResetStatBoost();
+        VolatileStatus = null;
+    }
+
+    public MonsterSaveData GetSaveData()
+    {
+        var saveData = new MonsterSaveData()
+        {
+            name = Base.Name,
+            hp = HP,
+            level = Level,
+            exp = Exp,
+            statusId = Status?.ID,
+            moves = Moves.Select(m => m.GetSaveData()).ToList()
+        };
+        return saveData;
+    }
+
     public bool CheckForLevelUp()
     {
         if (Exp >= Base.GetExpForLevel(Level + 1))
@@ -262,4 +297,16 @@ public class DamageDetails
     public bool Fainted { get; set; }
     public float Critical { get; set; }
     public float TypeEffectiveness { get; set; }
+}
+
+[System.Serializable]
+public class MonsterSaveData
+{
+    public string name;
+    public int hp;
+    public int level;
+    public int exp;
+    public ConditionID? statusId;
+    public List<MoveSaveData> moves;
+
 }

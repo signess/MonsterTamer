@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TamerController : MonoBehaviour, IInteractable
+public class TamerController : MonoBehaviour, IInteractable, ISavable
 {
     [SerializeField] new string name;
     [SerializeField] Sprite sprite;
@@ -86,5 +86,17 @@ public class TamerController : MonoBehaviour, IInteractable
         {
             StartCoroutine(DialogManager.Instance.ShowDialog(dialogAfterBattle));
         }
+    }
+
+    public object CaptureState()
+    {
+        return battleLost;
+    }
+
+    public void RestoreState(object state)
+    {
+        battleLost = (bool)state;
+        if (battleLost)
+            fov.gameObject.SetActive(false);
     }
 }

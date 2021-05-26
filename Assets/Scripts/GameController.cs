@@ -2,8 +2,9 @@ using System.Collections.Generic;
 using System.Collections;
 using Cinemachine;
 using UnityEngine;
+using System;
 
-public enum GameState { FreeRoam, Battle, Dialog, Cutscene, Paused }
+public enum GameState { FreeRoam, Battle, Dialog, Menu, Cutscene, Paused }
 
 public class GameController : MonoBehaviour
 {
@@ -11,6 +12,7 @@ public class GameController : MonoBehaviour
     [SerializeField] PlayerController playerController;
     [SerializeField] BattleSystem battleSystem;
     [SerializeField] Camera worldCamera;
+    [SerializeField] MenuController menuController;
 
     GameState state;
     GameState prevState;
@@ -23,6 +25,8 @@ public class GameController : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+        MonstersDB.Init();
+        MoveDB.Init();
         ConditionsDB.Init();
     }
 
@@ -32,6 +36,8 @@ public class GameController : MonoBehaviour
 
         DialogManager.Instance.OnShowDialog += () => { state = GameState.Dialog; };
         DialogManager.Instance.OnCloseDialog += () => { if (state == GameState.Dialog) state = GameState.FreeRoam; };
+
+        menuController.OnMenuSelected += OnMenuSelected;
     }
 
     private void Update()
@@ -48,22 +54,26 @@ public class GameController : MonoBehaviour
         {
             DialogManager.Instance.HandleUpdate();
         }
+        else if(state == GameState.Menu)
+        {
+            //menu handle
+        }
     }
 
-    public void PauseGame(bool pause)
+    public void PauseGame(bool pause, GameState nextState = GameState.Paused)
     {
         if (pause)
         {
+            playerController.Input = Vector3.zero;
             prevState = state;
-            state = GameState.Paused;
+            state = nextState;
         }
         else
         {
             state = prevState;
         }
-
-
     }
+
 
     public void OnEnterTamersView(TamerController tamer)
     {
@@ -159,5 +169,37 @@ public class GameController : MonoBehaviour
     {
         PrevScene = CurrentScene;
         CurrentScene = currentScene;
+    }
+
+    private void OnMenuSelected(int selectedItem)
+    {
+        if(selectedItem == 0)
+        {
+
+        }
+        else if(selectedItem == 1)
+        {
+
+        }
+        else if(selectedItem == 2)
+        {
+
+        }
+        else if(selectedItem == 3)
+        {
+
+        }
+        else if (selectedItem == 4)
+        {
+            //Save
+            SavingSystem.i.Save("saveSlot1");
+        }
+        else if(selectedItem == 5)
+        {
+            //Load
+            SavingSystem.i.Load("saveSlot1");
+        }
+
+
     }
 }

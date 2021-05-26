@@ -2,8 +2,10 @@ using System.Net;
 using System;
 using System.Collections;
 using UnityEngine;
+using System.Collections.Generic;
+using System.Linq;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviour, ISavable
 {
     [SerializeField] new string name;
     [SerializeField] Sprite sprite;
@@ -11,7 +13,7 @@ public class PlayerController : MonoBehaviour
     private InputManager inputManager;
     private Character character;
 
-    [SerializeField] private Vector2 input;
+    [HideInInspector] public Vector2 Input;
     [SerializeField] private bool interact;
 
     public string Name { get => name; }
@@ -31,8 +33,8 @@ public class PlayerController : MonoBehaviour
 
     public void GetInput()
     {
-        input.x = inputManager.GetPlayerMovement().x;
-        input.y = inputManager.GetPlayerMovement().y;
+        Input.x = inputManager.GetPlayerMovement().x;
+        Input.y = inputManager.GetPlayerMovement().y;
         interact = inputManager.GetPlayerInteract();
     }
 
@@ -40,26 +42,26 @@ public class PlayerController : MonoBehaviour
     {
         if (!character.IsMoving)
         {
-            if (input.x != 0f)
+            if (Input.x != 0f)
             {
-                input.y = 0;
-                if (input.x < 0)
-                    input.x = -1.0f;
+                Input.y = 0;
+                if (Input.x < 0)
+                    Input.x = -1.0f;
                 else
-                    input.x = 1.0f;
+                    Input.x = 1.0f;
             }
-            else if (input.y != 0)
+            else if (Input.y != 0)
             {
-                input.x = 0;
-                if (input.y < 0)
-                    input.y = -1.0f;
+                Input.x = 0;
+                if (Input.y < 0)
+                    Input.y = -1.0f;
                 else
-                    input.y = 1.0f;
+                    Input.y = 1.0f;
             }
 
-            if (input != Vector2.zero)
+            if (Input != Vector2.zero)
             {
-                StartCoroutine(character.Move(input, OnMoveOver));
+                StartCoroutine(character.Move(Input, OnMoveOver));
             }
         }
 
@@ -96,4 +98,31 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public object CaptureState()
+    {
+        var saveData = new PlayerSaveData()
+        {
+            position = new float[] { transform.position.x, transform.position.y },
+            monsters = GetComponent<MonsterParty>().Monsters.Select(p => p.GetSaveData()).ToList()
+        };
+        return saveData;
+    }
+
+    public void RestoreState(object state)
+    {
+        var savedData = (PlayerSaveData)state;
+        //Restore position
+        var pos = savedData.position;
+        transform.position = new Vector3(pos[0], pos[1]);
+
+        //Restore party
+        GetComponent<MonsterParty>().Monsters = savedData.monsters.Select(s => new Monster(s)).ToList();
+    }
+}
+
+[Serializable]
+public class PlayerSaveData
+{
+    public float[] position;
+    public List<MonsterSaveData> monsters;
 }

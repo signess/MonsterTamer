@@ -39,7 +39,6 @@ public class BattleSystem : MonoBehaviour
     [SerializeField] List<GameObject> moveTexts;
     [SerializeField] List<TextMeshProUGUI> ppTexts;
     [SerializeField] List<TextMeshProUGUI> typeTexts;
-    [SerializeField] Color highlightedColor;
 
     [Header("Party Screen")]
     [SerializeField] PartyScreen partyScreen;
@@ -556,7 +555,7 @@ public class BattleSystem : MonoBehaviour
         {
             if (i == selectedAction)
             {
-                actionTexts[i].GetComponentInChildren<TextMeshProUGUI>().color = highlightedColor;
+                actionTexts[i].GetComponentInChildren<TextMeshProUGUI>().color = GlobalSettings.Instance.HighlightedColor;
             }
             else
             {
@@ -571,7 +570,7 @@ public class BattleSystem : MonoBehaviour
         {
             if (i == selectedMove)
             {
-                moveTexts[i].GetComponentInChildren<TextMeshProUGUI>().color = highlightedColor;
+                moveTexts[i].GetComponentInChildren<TextMeshProUGUI>().color = GlobalSettings.Instance.HighlightedColor;
             }
             else
             {
