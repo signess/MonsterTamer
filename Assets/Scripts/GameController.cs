@@ -4,7 +4,7 @@ using Cinemachine;
 using UnityEngine;
 using System;
 
-public enum GameState { FreeRoam, Battle, Dialog, Menu, Cutscene, Paused }
+public enum GameState { FreeRoam, Battle, Dialog, Menu, PartyScreen, Cutscene, Paused }
 
 public class GameController : MonoBehaviour
 {
@@ -13,6 +13,7 @@ public class GameController : MonoBehaviour
     [SerializeField] BattleSystem battleSystem;
     [SerializeField] Camera worldCamera;
     [SerializeField] MenuController menuController;
+    [SerializeField] PartyScreen partyScreen;
 
     GameState state;
     GameState prevState;
@@ -33,6 +34,7 @@ public class GameController : MonoBehaviour
     private void Start()
     {
         battleSystem.OnBattleOver += EndBattle;
+        partyScreen.Init();
 
         DialogManager.Instance.OnShowDialog += () => { state = GameState.Dialog; };
         DialogManager.Instance.OnCloseDialog += () => { if (state == GameState.Dialog) state = GameState.FreeRoam; };
@@ -58,13 +60,26 @@ public class GameController : MonoBehaviour
         {
             //menu handle
         }
+        else if(state == GameState.PartyScreen)
+        {
+            Action onSelected = () =>
+            {
+                //Go to sumary screen
+            };
+
+            Action onBack = () =>
+            {
+                PartyScreenBackButon();
+            };
+            partyScreen.HandleUpdate(onSelected, onBack);
+        }
     }
 
     public void PauseGame(bool pause, GameState nextState = GameState.Paused)
     {
         if (pause)
         {
-            playerController.Input = Vector3.zero;
+            playerController.ForceStopMovement();
             prevState = state;
             state = nextState;
         }
@@ -78,16 +93,19 @@ public class GameController : MonoBehaviour
     public void OnEnterTamersView(TamerController tamer)
     {
         state = GameState.Cutscene;
+        playerController.ForceStopMovement();
         StartCoroutine(tamer.TriggerTrainerBattle(playerController));
     }
 
     public void StartWildBattle()
     {
+        menuController.ToggleMenuButton();
         StartCoroutine(WildBattleTransition());
     }
 
     public void StartTamerBattle(TamerController tamer)
     {
+        menuController.ToggleMenuButton();
         this.tamer = tamer;
         StartCoroutine(TamerBattleTransition(tamer));
     }
@@ -102,6 +120,7 @@ public class GameController : MonoBehaviour
 
         StartCoroutine(TransitionEndBattle());
         state = GameState.FreeRoam;
+        menuController.ToggleMenuButton();
 
         //worldCamera.gameObject.SetActive(true);
     }
@@ -179,7 +198,10 @@ public class GameController : MonoBehaviour
         }
         else if(selectedItem == 1)
         {
-
+            //Party Screen
+            partyScreen.gameObject.SetActive(true);
+            partyScreen.SetPartyData(playerController.GetComponent<MonsterParty>().Monsters);
+            state = GameState.PartyScreen;
         }
         else if(selectedItem == 2)
         {
@@ -201,5 +223,11 @@ public class GameController : MonoBehaviour
         }
 
 
+    }
+
+    public void PartyScreenBackButon()
+    {
+        partyScreen.gameObject.SetActive(false);
+        menuController.ToogleMenu();
     }
 }

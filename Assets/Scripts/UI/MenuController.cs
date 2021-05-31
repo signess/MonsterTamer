@@ -8,6 +8,13 @@ public class MenuController : MonoBehaviour
 {
     public event Action<int> OnMenuSelected;
     [SerializeField] GameObject menu;
+    [SerializeField] GameObject menuButton;
+
+    public void ToggleMenuButton()
+    {
+        menuButton.SetActive(!menuButton.activeInHierarchy);
+    }
+
     public void ToogleMenu()
     {
         StartCoroutine(MenuAnimation());

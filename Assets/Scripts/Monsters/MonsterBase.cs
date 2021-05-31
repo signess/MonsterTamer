@@ -12,6 +12,8 @@ public class MonsterBase : ScriptableObject
     [SerializeField] Sprite frontSprite;
     [SerializeField] Sprite backSprite;
 
+    [SerializeField] Sprite icon;
+
     [SerializeField] MonsterType type1;
     [SerializeField] MonsterType type2;
 
@@ -38,6 +40,8 @@ public class MonsterBase : ScriptableObject
     public Sprite FrontSprite { get => frontSprite; }
 
     public Sprite BackSprite { get => backSprite; }
+
+    public Sprite Icon { get => icon; }
 
     public MonsterType Type1 { get => type1; }
 

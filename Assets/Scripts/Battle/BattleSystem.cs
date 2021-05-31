@@ -45,11 +45,10 @@ public class BattleSystem : MonoBehaviour
 
     private InputManager inputManager;
     private BattleState state;
-    private BattleState? prevState;
+    
     private int currentAction = -1;
     private int lastAction = -1;
     private int currentMove = -1;
-    private int currentMember = -1;
     private bool aboutToUseChoice = true;
 
     MonsterParty playerParty;
@@ -204,6 +203,7 @@ public class BattleSystem : MonoBehaviour
 
     public void OpenPartyScreen()
     {
+        partyScreen.CalledFrom = state;
         state = BattleState.PartyScreen;
         partyScreen.SetPartyData(playerParty.Monsters);
         partyScreen.gameObject.SetActive(true);
@@ -265,8 +265,6 @@ public class BattleSystem : MonoBehaviour
         if (inputManager.GetBattleMoveInput().y < 0 && !inputManager.HoldInput)
         {
             inputManager.HoldInput = true;
-            if (EnableKeyNavigation())
-                return;
 
             if (lastAction != -1)
                 currentAction = lastAction;
@@ -277,8 +275,6 @@ public class BattleSystem : MonoBehaviour
         else if (inputManager.GetBattleMoveInput().y > 0 && !inputManager.HoldInput)
         {
             inputManager.HoldInput = true;
-            if (EnableKeyNavigation())
-                return;
 
             //if (currentAction >= 2)
             lastAction = currentAction;
@@ -288,8 +284,6 @@ public class BattleSystem : MonoBehaviour
         else if (inputManager.GetBattleMoveInput().x < 0 && !inputManager.HoldInput)
         {
             inputManager.HoldInput = true;
-            if (EnableKeyNavigation())
-                return;
 
             if (currentAction >= 2)
                 currentAction--;
@@ -297,8 +291,6 @@ public class BattleSystem : MonoBehaviour
         else if (inputManager.GetBattleMoveInput().x > 0 && !inputManager.HoldInput)
         {
             inputManager.HoldInput = true;
-            if (EnableKeyNavigation())
-                return;
 
             if (currentAction >= 1)
                 currentAction++;
@@ -334,7 +326,6 @@ public class BattleSystem : MonoBehaviour
 
     public void PartyScreenButton()
     {
-        prevState = state;
         OpenPartyScreen();
     }
 
@@ -343,8 +334,6 @@ public class BattleSystem : MonoBehaviour
         if (inputManager.GetBattleMoveInput().y < 0 && !inputManager.HoldInput)
         {
             inputManager.HoldInput = true;
-            if (EnableKeyNavigation())
-                return;
 
             currentMove += 2;
 
@@ -352,8 +341,6 @@ public class BattleSystem : MonoBehaviour
         else if (inputManager.GetBattleMoveInput().y > 0 && !inputManager.HoldInput)
         {
             inputManager.HoldInput = true;
-            if (EnableKeyNavigation())
-                return;
 
             currentMove -= 2;
 
@@ -361,16 +348,12 @@ public class BattleSystem : MonoBehaviour
         else if (inputManager.GetBattleMoveInput().x < 0 && !inputManager.HoldInput)
         {
             inputManager.HoldInput = true;
-            if (EnableKeyNavigation())
-                return;
 
             --currentMove;
         }
         else if (inputManager.GetBattleMoveInput().x > 0 && !inputManager.HoldInput)
         {
             inputManager.HoldInput = true;
-            if (EnableKeyNavigation())
-                return;
 
             ++currentMove;
         }
@@ -408,60 +391,32 @@ public class BattleSystem : MonoBehaviour
         StartCoroutine(RunTurns(BattleAction.UseItem));
     }
 
+    
     private void HandlePartySelection()
     {
-        if (inputManager.GetBattleMoveInput().y < 0 && !inputManager.HoldInput)
+        Action onSelected = () =>
         {
-            inputManager.HoldInput = true;
-            if (EnableKeyNavigation())
-                return;
+            MonsterSelected();
+        };
 
-            currentMember += 2;
-
-        }
-        else if (inputManager.GetBattleMoveInput().y > 0 && !inputManager.HoldInput)
-        {
-            inputManager.HoldInput = true;
-            if (EnableKeyNavigation())
-                return;
-
-            currentMember -= 2;
-
-        }
-        else if (inputManager.GetBattleMoveInput().x < 0 && !inputManager.HoldInput)
-        {
-            inputManager.HoldInput = true;
-            if (EnableKeyNavigation())
-                return;
-
-            --currentMember;
-        }
-        else if (inputManager.GetBattleMoveInput().x > 0 && !inputManager.HoldInput)
-        {
-            inputManager.HoldInput = true;
-            if (EnableKeyNavigation())
-                return;
-
-            ++currentMember;
-        }
-
-        currentMember = Mathf.Clamp(currentMember, 0, playerParty.Monsters.Count - 1);
-        //partyScreen.UpdateMemberSelection(currentMember);
-
-        if (inputManager.GetBattleConfirmInput() && currentMember != -1)
-        {
-            MonsterSelected(currentMember);
-        }
-        else if (inputManager.GetBattleCancelInput())
+        Action onBack = () =>
         {
             CancelButton();
-        }
+        };
+
+        partyScreen.HandleUpdate(onSelected, onBack);
+
     }
 
-    public void MonsterSelected(int selected)
+    public void PartyButtonSelected(int selected)
     {
-        currentMember = selected;
-        var selectedMember = playerParty.Monsters[selected];
+        partyScreen.Selection = selected;
+        MonsterSelected();
+    }
+
+    public void MonsterSelected()
+    {
+        var selectedMember = partyScreen.SelectedMember;
         if (selectedMember.HP <= 0)
         {
             partyScreen.SetMessageText("You can't send out a fainted Monster.");
@@ -474,17 +429,39 @@ public class BattleSystem : MonoBehaviour
         }
         partyScreen.gameObject.SetActive(false);
         DisableSelectors();
-        if (prevState == BattleState.ActionSelection)
+        if (partyScreen.CalledFrom == BattleState.ActionSelection)
         {
-            prevState = null;
             StartCoroutine(RunTurns(BattleAction.SwitchMonster));
         }
         else
         {
             state = BattleState.Busy;
-            StartCoroutine(SwitchMonster(selectedMember));
+            bool isTrainerAboutToUse = partyScreen.CalledFrom == BattleState.AboutToUse;
+            StartCoroutine(SwitchMonster(selectedMember, isTrainerAboutToUse));
         }
+        partyScreen.CalledFrom = null;
     }
+
+    public void CancelButton()
+    {
+        if (playerUnit.Monster.HP <= 0)
+        {
+            dialogBox.SetDialog("You have to choose a Monster to continue!");
+            return;
+        }
+
+
+        partyScreen.gameObject.SetActive(false);
+        if (partyScreen.CalledFrom == BattleState.AboutToUse)
+        {
+            StartCoroutine(SendNextTamerMonster());
+        }
+        else
+            ActionSelection();
+
+        partyScreen.CalledFrom = null;
+    }
+
 
     public void HandleAboutToUse()
     {
@@ -505,7 +482,6 @@ public class BattleSystem : MonoBehaviour
         EnableChoiceBox(false);
         if (selected)
         {
-            prevState = BattleState.AboutToUse;
             OpenPartyScreen();
         }
         else
@@ -514,17 +490,6 @@ public class BattleSystem : MonoBehaviour
         }
     }
 
-    private bool EnableKeyNavigation()
-    {
-        if (currentAction == -1 || currentMove == -1 || currentMember == -1)
-        {
-            currentAction = 0;
-            currentMove = 0;
-            currentMember = 0;
-            return true;
-        }
-        return false;
-    }
 
     public void EnableActionSelector(bool enabled)
     {
@@ -648,7 +613,7 @@ public class BattleSystem : MonoBehaviour
         {
             if (playerAction == BattleAction.SwitchMonster)
             {
-                var selectedMonster = playerParty.Monsters[currentMember];
+                var selectedMonster = partyScreen.SelectedMember;
                 state = BattleState.Busy;
                 yield return SwitchMonster(selectedMonster);
             }
@@ -914,7 +879,7 @@ public class BattleSystem : MonoBehaviour
             yield return dialogBox.TypeDialog("It's not very effective!");
     }
 
-    private IEnumerator SwitchMonster(Monster newMonster)
+    private IEnumerator SwitchMonster(Monster newMonster, bool isTrainerAboutToUse = false)
     {
         if (playerUnit.Monster.HP > 0)
         {
@@ -922,22 +887,20 @@ public class BattleSystem : MonoBehaviour
             yield return playerUnit.PlayFaintAnimation();
         }
 
-        yield return SendNextMonster(newMonster);
+        yield return SendNextMonster(newMonster, isTrainerAboutToUse);
     }
-    private IEnumerator SendNextMonster(Monster nextMonster)
+    private IEnumerator SendNextMonster(Monster nextMonster, bool isTrainerAboutToUse = false)
     {
         playerUnit.Setup(nextMonster);
         SetMoveNamesAndDetails(nextMonster.Moves);
 
         yield return dialogBox.TypeDialog($"Go {nextMonster.Base.Name}!");
 
-        if (prevState == null || prevState == BattleState.ActionSelection)
-            state = BattleState.RunningTurn;
-        else if (prevState == BattleState.AboutToUse)
-        {
-            prevState = null;
+        if(isTrainerAboutToUse)
             StartCoroutine(SendNextTamerMonster());
-        }
+        else
+            state = BattleState.RunningTurn;
+
     }
 
     private IEnumerator SendNextTamerMonster()
@@ -951,24 +914,7 @@ public class BattleSystem : MonoBehaviour
         state = BattleState.RunningTurn;
     }
 
-    public void CancelButton()
-    {
-        if (playerUnit.Monster.HP <= 0)
-        {
-            dialogBox.SetDialog("You have to choose a Monster to continue!");
-            return;
-        }
-
-
-        partyScreen.gameObject.SetActive(false);
-        if (prevState == BattleState.AboutToUse)
-        {
-            prevState = null;
-            StartCoroutine(SendNextTamerMonster());
-        }
-        else
-            ActionSelection();
-    }
+   
 
     private IEnumerator ThrowPokeball()
     {

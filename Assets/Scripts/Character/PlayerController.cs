@@ -38,6 +38,12 @@ public class PlayerController : MonoBehaviour, ISavable
         interact = inputManager.GetPlayerInteract();
     }
 
+    public void ForceStopMovement()
+    {
+        Character.Animator.IsMoving = false;
+        Input = Vector3.zero;
+    }
+
     private void MovePlayer(float deltaTime)
     {
         if (!character.IsMoving)
