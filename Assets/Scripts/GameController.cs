@@ -4,7 +4,7 @@ using Cinemachine;
 using UnityEngine;
 using System;
 
-public enum GameState { FreeRoam, Battle, Dialog, Menu, PartyScreen, Cutscene, Paused }
+public enum GameState { FreeRoam, Battle, Dialog, Menu, PartyScreen, Bag, Cutscene, Paused }
 
 public class GameController : MonoBehaviour
 {
@@ -14,6 +14,7 @@ public class GameController : MonoBehaviour
     [SerializeField] Camera worldCamera;
     [SerializeField] MenuController menuController;
     [SerializeField] PartyScreen partyScreen;
+    [SerializeField] InventoryUI inventoryUI;
 
     GameState state;
     GameState prevState;
@@ -72,6 +73,15 @@ public class GameController : MonoBehaviour
                 PartyScreenBackButon();
             };
             partyScreen.HandleUpdate(onSelected, onBack);
+        }
+        else if(state == GameState.Bag)
+        {
+            Action onBack = () =>
+            {
+                inventoryUI.gameObject.SetActive(false);
+                state = GameState.Menu;
+            };
+            inventoryUI.HandleUpdate(onBack);
         }
     }
 
@@ -205,7 +215,9 @@ public class GameController : MonoBehaviour
         }
         else if(selectedItem == 2)
         {
-
+            //Bag
+            inventoryUI.gameObject.SetActive(true);
+            state = GameState.Bag;
         }
         else if(selectedItem == 3)
         {
