@@ -12,6 +12,14 @@ public class ItemSlotUI : MonoBehaviour
 
     public TextMeshProUGUI NameText => nameText;
     public TextMeshProUGUI CountText => countText;
+    public float Height => rectTransform.rect.height;
+
+    private RectTransform rectTransform;
+
+    private void Awake()
+    {
+        rectTransform = GetComponent<RectTransform>();
+    }
 
     public void SetData(ItemSlot itemSlot)
     {
