@@ -5,8 +5,8 @@ using UnityEngine;
 [System.Serializable]
 public class Monster
 {
-    [SerializeField] MonsterBase _base;
-    [SerializeField] int level;
+    [SerializeField] private MonsterBase _base;
+    [SerializeField] private int level;
     public MonsterBase Base { get => _base; }
     public int Level { get => level; }
     public int Exp { get; set; }
@@ -21,7 +21,10 @@ public class Monster
     public int VolatileStatusTime { get; set; }
     public Queue<string> StatusChanges { get; private set; }
     public bool HPChanged;
+
     public event System.Action OnStatusChanged;
+
+    public event System.Action OnHPChanged;
 
     public int MaxHp { get; private set; }
 
@@ -216,12 +219,21 @@ public class Monster
         float d = a * move.Base.Power * (attack / defense) + 2;
         int damage = Mathf.FloorToInt(d * modifiers);
 
-        UpdateHP(damage);
+        DecreaseHP(damage);
         return damageDetails;
     }
-    public void UpdateHP(int damage)
+
+    public void DecreaseHP(int damage)
     {
         HP = Mathf.Clamp(HP - damage, 0, MaxHp);
+        OnHPChanged?.Invoke();
+        HPChanged = true;
+    }
+
+    public void IncreaseHP(int amount)
+    {
+        HP = Mathf.Clamp(HP + amount, 0, MaxHp);
+        OnHPChanged?.Invoke();
         HPChanged = true;
     }
 
@@ -308,5 +320,4 @@ public class MonsterSaveData
     public int exp;
     public ConditionID? statusId;
     public List<MoveSaveData> moves;
-
 }

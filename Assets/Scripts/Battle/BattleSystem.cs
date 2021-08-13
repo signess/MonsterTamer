@@ -205,9 +205,8 @@ public class BattleSystem : MonoBehaviour
     {
         partyScreen.CalledFrom = state;
         state = BattleState.PartyScreen;
-        partyScreen.SetPartyData(playerParty.Monsters);
         partyScreen.gameObject.SetActive(true);
-
+        partyScreen.OpenPartyScreen();
     }
 
     public void MoveSelection()
@@ -406,12 +405,6 @@ public class BattleSystem : MonoBehaviour
 
         partyScreen.HandleUpdate(onSelected, onBack);
 
-    }
-
-    public void PartyButtonSelected(int selected)
-    {
-        partyScreen.Selection = selected;
-        MonsterSelected();
     }
 
     public void MonsterSelected()

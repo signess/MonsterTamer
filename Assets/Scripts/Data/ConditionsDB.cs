@@ -21,7 +21,7 @@ public class ConditionsDB
                 StartMessage = "has been poisoned.",
                 OnAfterTurn = (Monster monster) =>
                 {
-                    monster.UpdateHP(monster.MaxHp/8);
+                    monster.DecreaseHP(monster.MaxHp/8);
                     monster.StatusChanges.Enqueue($"{monster.Base.Name} hurt itself due to poison.");
                 }
             }
@@ -33,7 +33,7 @@ public class ConditionsDB
                 StartMessage = "has been burned.",
                 OnAfterTurn = (Monster monster) =>
                 {
-                    monster.UpdateHP(monster.MaxHp/16);
+                    monster.DecreaseHP(monster.MaxHp/16);
                     monster.StatusChanges.Enqueue($"{monster.Base.Name} hurt itself due to burn.");
                 }
             }
@@ -120,7 +120,7 @@ public class ConditionsDB
                     if(UnityEngine.Random.Range(1,3) == 1)
                         return true;
 
-                    monster.UpdateHP(monster.MaxHp / 8);
+                    monster.DecreaseHP(monster.MaxHp / 8);
                     monster.StatusChanges.Enqueue("It hurt itself due to confusion.");
                     return false;
                 }

@@ -70,7 +70,7 @@ public class GameController : MonoBehaviour
 
             Action onBack = () =>
             {
-                PartyScreenBackButon();
+                partyScreen.ClosePartyScreen();
             };
             partyScreen.HandleUpdate(onSelected, onBack);
         }
@@ -209,9 +209,9 @@ public class GameController : MonoBehaviour
         else if(selectedItem == 1)
         {
             //Party Screen
-            partyScreen.gameObject.SetActive(true);
-            partyScreen.SetPartyData(playerController.GetComponent<MonsterParty>().Monsters);
             state = GameState.PartyScreen;
+            partyScreen.gameObject.SetActive(true);
+            partyScreen.OpenPartyScreen();
         }
         else if(selectedItem == 2)
         {
@@ -237,9 +237,4 @@ public class GameController : MonoBehaviour
 
     }
 
-    public void PartyScreenBackButon()
-    {
-        partyScreen.gameObject.SetActive(false);
-        menuController.ToogleMenu();
-    }
 }

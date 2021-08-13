@@ -1,13 +1,18 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
 public class PartyScreen : MonoBehaviour
 {
+    [SerializeField] private CanvasGroup canvasGroup;
     [SerializeField] private TextMeshProUGUI messageText;
     private PartyMemberUI[] memberSlots;
     private List<Monster> monsters;
+    private MonsterParty party;
+    private Action selectedAction;
+    private Action backAction;
 
     int selection = 0;
     public int Selection { get => selection; set => selection = value; }
@@ -22,6 +27,11 @@ public class PartyScreen : MonoBehaviour
     public void Init()
     {
         memberSlots = GetComponentsInChildren<PartyMemberUI>(true);
+
+        party = MonsterParty.GetPlayerParty();
+        SetPartyData();
+
+        party.OnUpdated += SetPartyData;
     }
 
     public void HandleUpdate(Action onSelected, Action onBack)
@@ -50,6 +60,13 @@ public class PartyScreen : MonoBehaviour
         selection = Mathf.Clamp(selection, 0, monsters.Count - 1);
         //UpdateMemberSelection(currentMember);
 
+
+        if (selectedAction != onSelected)
+            selectedAction = onSelected;
+
+        if (backAction != onBack)
+            backAction = onBack;
+
         if (InputManager.Instance.GetBattleConfirmInput() && selection != -1)
         {
             onSelected?.Invoke();
@@ -60,17 +77,26 @@ public class PartyScreen : MonoBehaviour
         }
     }
 
-   
-
-    public void SetPartyData(List<Monster> monsters)
+    public void PartyButton(int selected)
     {
-        this.monsters = monsters;
+        Selection = selected;
+        selectedAction?.Invoke();
+    }
+
+   public void BackButton()
+    {
+        backAction?.Invoke();
+    }
+
+    public void SetPartyData()
+    {
+        monsters = party.Monsters;
         for (int i = 0; i < memberSlots.Length; i++)
         {
             if (i < monsters.Count)
             {
                 memberSlots[i].gameObject.SetActive(true);
-                memberSlots[i].SetData(monsters[i]);
+                memberSlots[i].Init(monsters[i]);
             }
             else
                 memberSlots[i].gameObject.SetActive(false);
@@ -92,5 +118,31 @@ public class PartyScreen : MonoBehaviour
     public void SetMessageText(string message)
     {
         messageText.text = message;
+    }
+
+    private IEnumerator PartyScreenFader(bool open)
+    {
+        if(open)
+        {
+            yield return Fader.Instance.FadeIn(.5f);
+            canvasGroup.alpha = 1;
+            yield return Fader.Instance.FadeOut(.5f);
+        }
+        else if(!open)
+        {
+            yield return Fader.Instance.FadeIn(.5f);
+            canvasGroup.alpha = 0;
+            yield return Fader.Instance.FadeOut(.5f);
+            gameObject.SetActive(false);
+        }
+    }
+    public void OpenPartyScreen()
+    {
+        StartCoroutine(PartyScreenFader(true));
+    }
+
+    public void ClosePartyScreen()
+    {
+        StartCoroutine(PartyScreenFader(false));
     }
 }
