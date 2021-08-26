@@ -134,6 +134,8 @@ public class PartyScreen : MonoBehaviour
             canvasGroup.alpha = 0;
             yield return Fader.Instance.FadeOut(.5f);
             gameObject.SetActive(false);
+            backAction = null;
+            selectedAction = null;
         }
     }
     public void OpenPartyScreen()

@@ -20,7 +20,6 @@ public class Monster
     public Condition VolatileStatus { get; private set; }
     public int VolatileStatusTime { get; set; }
     public Queue<string> StatusChanges { get; private set; }
-    public bool HPChanged;
 
     public event System.Action OnStatusChanged;
 
@@ -227,14 +226,12 @@ public class Monster
     {
         HP = Mathf.Clamp(HP - damage, 0, MaxHp);
         OnHPChanged?.Invoke();
-        HPChanged = true;
     }
 
     public void IncreaseHP(int amount)
     {
         HP = Mathf.Clamp(HP + amount, 0, MaxHp);
         OnHPChanged?.Invoke();
-        HPChanged = true;
     }
 
     public void SetStatus(ConditionID conditionID)

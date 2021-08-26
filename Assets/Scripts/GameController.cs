@@ -78,7 +78,7 @@ public class GameController : MonoBehaviour
         {
             Action onBack = () =>
             {
-                inventoryUI.gameObject.SetActive(false);
+                inventoryUI.CloseInventoryUI();
                 state = GameState.Menu;
             };
             inventoryUI.HandleUpdate(onBack);
@@ -216,8 +216,9 @@ public class GameController : MonoBehaviour
         else if(selectedItem == 2)
         {
             //Bag
-            inventoryUI.gameObject.SetActive(true);
             state = GameState.Bag;
+            inventoryUI.gameObject.SetActive(true);
+            inventoryUI.OpenInventoryUI();
         }
         else if(selectedItem == 3)
         {

@@ -7,16 +7,21 @@ using TMPro;
 public class HPBar : MonoBehaviour
 {
     [SerializeField] Image health;
+
+    public bool IsUpdating { get; private set; }
+
     public void SetHP(float hpNormalized)
     {
         health.fillAmount = hpNormalized;
     }
 
-    public IEnumerator LerpHP(float newHP)
+    public IEnumerator SetHPAsync(float newHP)
     {
-
+        IsUpdating = true;
         yield return health.DOFillAmount(newHP, 1.5f).WaitForCompletion();
         health.fillAmount = newHP;
+        IsUpdating = false;
+
         // float currentHP = health.fillAmount;
         // float changeAmount = currentHP - newHP;
         // while (currentHP - newHP > Mathf.Epsilon)

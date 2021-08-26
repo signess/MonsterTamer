@@ -7,7 +7,7 @@ using UnityEngine;
 using DG.Tweening;
 using UnityEngine.UI;
 
-public enum BattleState { Start, ActionSelection, MoveSelection, RunningTurn, Busy, PartyScreen, AboutToUse, ForgetMove, BattleOver }
+public enum BattleState { Start, ActionSelection, MoveSelection, RunningTurn, Busy, Bag, PartyScreen, AboutToUse, ForgetMove, BattleOver }
 
 public enum BattleAction { Move, SwitchMonster, UseItem, Run }
 
@@ -22,6 +22,7 @@ public class BattleSystem : MonoBehaviour
     [Header("Enemy")]
     [SerializeField] BattleUnit enemyUnit;
     [SerializeField] SpriteRenderer tamerSprite;
+
     [Header("HUDs")]
     [SerializeField] CanvasGroup hudCanvasGroup;
 
@@ -42,6 +43,9 @@ public class BattleSystem : MonoBehaviour
 
     [Header("Party Screen")]
     [SerializeField] PartyScreen partyScreen;
+
+    [Header("Inventory Screen")]
+    [SerializeField] InventoryUI inventoryUI;
 
     private InputManager inputManager;
     private BattleState state;
@@ -103,6 +107,23 @@ public class BattleSystem : MonoBehaviour
         else if (state == BattleState.PartyScreen)
         {
             HandlePartySelection();
+        }
+        else if(state == BattleState.Bag)
+        {
+            Action onBack = () =>
+            {
+                inventoryUI.CloseInventoryUI();
+                state = BattleState.ActionSelection;
+            };
+
+            Action onItemUsed = () =>
+            {
+                state = BattleState.Busy;
+                inventoryUI.CloseInventoryUI();
+                StartCoroutine(RunTurns(BattleAction.UseItem));
+            };
+
+            inventoryUI.HandleUpdate(onBack, onItemUsed);
         }
         else if (state == BattleState.AboutToUse)
         {
@@ -209,7 +230,7 @@ public class BattleSystem : MonoBehaviour
         partyScreen.OpenPartyScreen();
     }
 
-    public void MoveSelection()
+    public void MovesButton()
     {
         state = BattleState.MoveSelection;
         SetMoveNamesAndDetails(playerUnit.Monster.Moves);
@@ -303,12 +324,12 @@ public class BattleSystem : MonoBehaviour
         {
             if (currentAction == 0)
             {
-                MoveSelection();
+                MovesButton();
             }
             else if (currentAction == 1)
             {
                 //BAG
-                BagSelected();
+                BagButton();
             }
             else if (currentAction == 2)
             {
@@ -385,9 +406,11 @@ public class BattleSystem : MonoBehaviour
         StartCoroutine(RunTurns(BattleAction.Move));
     }
 
-    public void BagSelected()
+    public void BagButton()
     {
-        StartCoroutine(RunTurns(BattleAction.UseItem));
+        state = BattleState.Bag;
+        inventoryUI.gameObject.SetActive(true);
+        inventoryUI.OpenInventoryUI();
     }
 
     
@@ -444,7 +467,7 @@ public class BattleSystem : MonoBehaviour
         }
 
 
-        partyScreen.gameObject.SetActive(false);
+        partyScreen.ClosePartyScreen();
         if (partyScreen.CalledFrom == BattleState.AboutToUse)
         {
             StartCoroutine(SendNextTamerMonster());
@@ -612,8 +635,8 @@ public class BattleSystem : MonoBehaviour
             }
             else if (playerAction == BattleAction.UseItem)
             {
+                //This is handled from item screen, so do nothing and skip to enemy move
                 DisableSelectors();
-                yield return ThrowPokeball();
             }
             else if (playerAction == BattleAction.Run)
             {
@@ -639,7 +662,7 @@ public class BattleSystem : MonoBehaviour
         if (!canPerformMove)
         {
             yield return ShowStatusChanges(sourceUnit.Monster);
-            yield return sourceUnit.HUD.UpdateHP();
+            yield return sourceUnit.HUD.WaitForHPUpdate();
             yield break;
         }
         yield return ShowStatusChanges(sourceUnit.Monster);
@@ -677,7 +700,7 @@ public class BattleSystem : MonoBehaviour
             else
             {
                 var damageDetails = targetUnit.Monster.TakeDamage(move, sourceUnit.Monster);
-                yield return targetUnit.HUD.UpdateHP();
+                yield return targetUnit.HUD.WaitForHPUpdate();
                 yield return ShowDamageDetails(damageDetails);
             }
 
@@ -737,7 +760,7 @@ public class BattleSystem : MonoBehaviour
         //Statuses like burn or psn will hurt the pokemo after the turn!
         sourceUnit.Monster.OnAfterTurn();
         yield return ShowStatusChanges(sourceUnit.Monster);
-        yield return sourceUnit.HUD.UpdateHP();
+        yield return sourceUnit.HUD.WaitForHPUpdate();
         if (sourceUnit.Monster.HP <= 0)
         {
             yield return HandlePokemonFainted(sourceUnit);

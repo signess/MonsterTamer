@@ -9,7 +9,7 @@ public enum InventoryUIState { ItemSelection, PartySelection, Busy }
 
 public class InventoryUI : MonoBehaviour
 {
-    private Action backAction;
+    [SerializeField] private CanvasGroup canvasGroup;
     [SerializeField] private GameObject itemList;
     [SerializeField] private ItemSlotUI itemSlotUI;
 
@@ -31,6 +31,8 @@ public class InventoryUI : MonoBehaviour
     private const int ITEMS_IN_VIEWPORT = 6;
     private const float HEIGHT_OFFSET = 40f;
 
+    private Action backAction;
+    private Action onItemUsed;
     private void Awake()
     {
         inventory = Inventory.GetInventory();
@@ -43,8 +45,9 @@ public class InventoryUI : MonoBehaviour
         inventory.OnUpdated += UpdateItemList;
     }
 
-    public void HandleUpdate(Action onBack)
+    public void HandleUpdate(Action onBack, Action onItemUsed = null)
     {
+        this.onItemUsed = onItemUsed;
         if (state == InventoryUIState.ItemSelection)
         {
             int prevSelection = selectedItem;
@@ -184,6 +187,7 @@ public class InventoryUI : MonoBehaviour
         if(usedItem != null)
         {
             yield return DialogManager.Instance.ShowDialogText($"{usedItem.Name} was used!");
+            onItemUsed?.Invoke();
         }
         else
         {
@@ -191,5 +195,32 @@ public class InventoryUI : MonoBehaviour
         }
 
         ClosePartyScreen();
+    }
+
+    private IEnumerator InventoryUIFader(bool open)
+    {
+        if (open)
+        {
+            yield return Fader.Instance.FadeIn(.5f);
+            canvasGroup.alpha = 1;
+            yield return Fader.Instance.FadeOut(.5f);
+        }
+        else if (!open)
+        {
+            yield return Fader.Instance.FadeIn(.5f);
+            canvasGroup.alpha = 0;
+            yield return Fader.Instance.FadeOut(.5f);
+            gameObject.SetActive(false);
+            backAction = null;
+        }
+    }
+    public void OpenInventoryUI()
+    {
+        StartCoroutine(InventoryUIFader(true));
+    }
+
+    public void CloseInventoryUI()
+    {
+        StartCoroutine(InventoryUIFader(false));
     }
 }

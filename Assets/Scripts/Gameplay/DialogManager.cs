@@ -57,7 +57,7 @@ public class DialogManager : MonoBehaviour
         yield return TypeDialog(text);
         if(waitForInput)
         {
-           yield return new WaitUntil(() => Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.Z));
+           yield return new WaitUntil(() => Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.Z) || Input.GetTouch(0).phase == TouchPhase.Began);
         }
         dialogBox.SetActive(false);
         IsShowing = false;

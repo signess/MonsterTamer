@@ -1,29 +1,34 @@
-using System.Collections.Generic;
+using DG.Tweening;
 using System.Collections;
+using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
-using DG.Tweening;
 
 public class BattleHUD : MonoBehaviour
 {
-    [SerializeField] TextMeshProUGUI nameText;
-    [SerializeField] TextMeshProUGUI levelText;
-    [SerializeField] TextMeshProUGUI statusText;
-    [SerializeField] HPBar hpBar;
-    [SerializeField] Image expBar;
+    [SerializeField] private TextMeshProUGUI nameText;
+    [SerializeField] private TextMeshProUGUI levelText;
+    [SerializeField] private TextMeshProUGUI statusText;
+    [SerializeField] private HPBar hpBar;
+    [SerializeField] private Image expBar;
 
-    [SerializeField] Color psnColor;
-    [SerializeField] Color brnColor;
-    [SerializeField] Color slpColor;
-    [SerializeField] Color parColor;
-    [SerializeField] Color frzColor;
+    [SerializeField] private Color psnColor;
+    [SerializeField] private Color brnColor;
+    [SerializeField] private Color slpColor;
+    [SerializeField] private Color parColor;
+    [SerializeField] private Color frzColor;
 
-    Monster _monster;
-    Dictionary<ConditionID, Color> statusColors;
+    private Monster _monster;
+    private Dictionary<ConditionID, Color> statusColors;
 
     public void SetData(Monster monster)
     {
+        if(_monster != null)
+        {
+            _monster.OnHPChanged -= UpdateHP;
+            _monster.OnStatusChanged -= SetStatusText;
+        }
         _monster = monster;
 
         nameText.text = monster.Base.Name;
@@ -39,6 +44,7 @@ public class BattleHUD : MonoBehaviour
 
         SetStatusText();
         _monster.OnStatusChanged += SetStatusText;
+        _monster.OnHPChanged += UpdateHP;
     }
 
     public void SetStatusText()
@@ -86,12 +92,18 @@ public class BattleHUD : MonoBehaviour
         return Mathf.Clamp01(normalizedExp);
     }
 
-    public IEnumerator UpdateHP()
+    public void UpdateHP()
     {
-        if (_monster.HPChanged)
-        {
-            yield return hpBar.LerpHP((float)_monster.HP / _monster.MaxHp);
-            _monster.HPChanged = false;
-        }
+        StartCoroutine(UpdateHPAsync());
+    }
+
+    public IEnumerator UpdateHPAsync()
+    {
+        yield return hpBar.SetHPAsync((float)_monster.HP / _monster.MaxHp);
+    }
+
+    public IEnumerable WaitForHPUpdate()
+    {
+        yield return new WaitUntil(() => hpBar.IsUpdating == false);
     }
 }

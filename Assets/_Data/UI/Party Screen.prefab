@@ -281,7 +281,7 @@ GameObject:
   - component: {fileID: 7014031444308596098}
   - component: {fileID: 3488973435123729997}
   m_Layer: 0
-  m_Name: Party Screen Menu
+  m_Name: Party Screen
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
